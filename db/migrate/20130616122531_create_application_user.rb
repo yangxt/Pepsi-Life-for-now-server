@@ -5,6 +5,7 @@ class CreateApplicationUser < ActiveRecord::Migration
   		t.string :password
   		t.string :name
   		t.text :image_url
+      t.text :description
   		t.references :coordinate
   	end
   end
