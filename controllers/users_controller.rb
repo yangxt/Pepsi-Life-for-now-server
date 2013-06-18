@@ -35,20 +35,21 @@ end
 
 post %r{^/users/?$} do
 	begin
-		User.transaction do
+		ApplicationUser.transaction do
 			user = ApplicationUser.create!
 			user.password = generate_password
 			user.username = "username" + user.id.to_s
 			user.save!
+
+			{
+				"id" => user.id,
+	 			"username" => user.username,
+	 			"password" => user.password
+			}.to_json
 		end
 	rescue
 		halt 500, "The user couldn't be created"
 	end
-	{
-	 "id" => user.id,
-	 "username" => user.username,
-	 "password" => user.password
-	}.to_json
 end
 
 patch %r{^/users/(\d+)/?$} do
