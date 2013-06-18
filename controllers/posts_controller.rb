@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'sinatra/activerecord'
 require './helpers/tools'
 require './helpers/constants'
 require './models/post'
@@ -6,7 +7,9 @@ require './models/application_user'
 require './models/tag'
 require './models/like'
 require './models/seen'
+require './models/comment'
 require './schemas/posts_POST'
+require './schemas/comments_POST'
 
 post %r{^/posts/?$} do
 	schema = Schemas.schemas[:posts_POST]
@@ -98,6 +101,53 @@ post %r{^/posts/(\d+)/seens/?$} do
 	end
 	""
 end
+
+post %r{^/posts/(\d+)/comments/$} do
+	post_id = params[:captures][0]
+	begin
+		post = Post.find(post_id)
+	rescue ActiveRecord::RecordNotFound
+		halt 404, "Non-existing post"
+	end
+	schema = Schemas.schemas[:comments_POST]
+	is_valid = Tools.validate_against_schema(schema, @json)
+	halt is_valid[1] unless is_valid[0]
+
+	comment = Comment.new
+	comment.text = @json["text"]
+	comment.application_user = @user
+	comment.post = post
+	comment.creation_date = DateTime.now
+	halt 500, "Couldn't create the comment" unless comment.save
+end
+
+get %r{^/posts/(\d+)/comments/$} do
+	post_id = params[:captures][0]
+	page = params[:page].to_i
+	page = 1 if page == 0
+	start_page = (page - 1) * Constants::COMMENTS_PER_PAGE
+	begin
+		post = Post.find(post_id)
+	rescue ActiveRecord::RecordNotFound
+		halt 404, "Non-existing post"
+	end
+
+	result = {:comments => [], :page => page, :pages_count => (post.comments.count.to_f / Constants::COMMENTS_PER_PAGE.to_f).ceil}
+	comments = post.comments.order("creation_date DESC").limit(Constants::COMMENTS_PER_PAGE).offset(start_page)
+	comments.each do |c|
+		array = result[:comments]
+		array << {
+			:text => c.text,
+			:owner => {
+				:name => c.application_user.name,
+				:image_url => c.application_user.image_url
+			},
+			:creation_date => c.creation_date
+		}
+	end
+	result.to_json
+end
+
 
 
 

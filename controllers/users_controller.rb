@@ -1,4 +1,5 @@
 require 'sinatra'
+require 'sinatra/activerecord'
 require './models/application_user'
 require './models/coordinate'
 require './schemas/users_geolocation_POST'
