@@ -6,7 +6,6 @@ class CreateApplicationUser < ActiveRecord::Migration
   		t.string :name
   		t.text :image_url
       t.text :description
-  		t.references :coordinate
   	end
   end
 

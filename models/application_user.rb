@@ -4,4 +4,5 @@ class ApplicationUser < ActiveRecord::Base
 	has_one :coordinate, :inverse_of => :application_user
 	has_many :likes, :inverse_of => :application_user
 	has_many :seens, :inverse_of => :application_user
+	has_many :comments, :inverse_of => :application_user
 end

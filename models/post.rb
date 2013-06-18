@@ -4,4 +4,5 @@ class Post < ActiveRecord::Base
 	has_many :tags, :inverse_of => :post
 	has_many :likes, :inverse_of => :post
 	has_many :seens, :inverse_of => :post
+	has_many :comments, :inverse_of => :post
 end
