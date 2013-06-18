@@ -3,16 +3,12 @@ require 'sinatra'
 require "sinatra/reloader" if development?
 require 'sinatra/activerecord'
 require './config/environments' #database configuration
-require './models/post'
 require 'json'
 require './helpers/authentication'
-require './helpers/constants'
 require './controllers/users_controller'
 require './controllers/posts_controller'
 
 API_KEY = "nd6YyykHsCygZZi64F"
-
-
 
 helpers do
 	include Sinatra::Authentication
