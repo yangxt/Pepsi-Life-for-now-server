@@ -45,6 +45,8 @@ get %r{^/posts/?$} do
 	page = params[:page].to_i
 	page = 1 if page == 0
 	start_page = (page - 1) * Constants::POSTS_PER_PAGE
+	only_friends = params[:only_friends] == "true"
+
 	query_parameters = {
 		:limit => Constants::POSTS_PER_PAGE,
 		:offset => start_page,
@@ -61,7 +63,13 @@ get %r{^/posts/?$} do
 
 	posts = Post.find(:all, query_parameters)
 	result = {:posts => [], :pages_count => (Post.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil, :page => page}
+	if only_friends
+		friends = @user.friends
+	end
 	posts.each do |p|
+		if only_friends
+			next unless friends.include?(p.application_user)
+		end
 		array = result[:posts]
 		tags = []
 		p.tags.each do |t|
