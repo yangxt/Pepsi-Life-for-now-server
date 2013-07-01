@@ -7,6 +7,7 @@ require 'json'
 require './helpers/authentication'
 require './controllers/users_controller'
 require './controllers/posts_controller'
+require './controllers/friends_controller'
 
 API_KEY = "nd6YyykHsCygZZi64F"
 

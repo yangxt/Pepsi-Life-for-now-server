@@ -31,7 +31,7 @@ post %r{^/posts/?$} do
 			post.save!
 			if tags
 				tags.each do |e|
-					Tag.create!(:text => e, :post => post)
+					Tag.create!(:text => e.upcase, :post => post)
 				end
 			end
 		end
@@ -45,13 +45,21 @@ get %r{^/posts/?$} do
 	page = params[:page].to_i
 	page = 1 if page == 0
 	start_page = (page - 1) * Constants::POSTS_PER_PAGE
-	posts = Post.find(:all, 
-			:limit => Constants::POSTS_PER_PAGE,
-			:offset => start_page,
-            :joins => "LEFT JOIN likes ON posts.id = likes.post_id LEFT JOIN seens ON posts.id = seens.post_id " ,
-            :select => "posts.*, count(posts.id) as posts_count, count(likes.post_id) as likes_count, count(seens.post_id) as seens_count",
-            :group => "posts.id",
-            :order => "likes_count DESC, seens_count DESC")
+	query_parameters = {
+		:limit => Constants::POSTS_PER_PAGE,
+		:offset => start_page,
+       	:joins => "LEFT JOIN likes ON posts.id = likes.post_id LEFT JOIN seens ON posts.id = seens.post_id LEFT JOIN tags ON posts.id = tags.post_id",
+       	:select => "posts.*, count(posts.id) as posts_count, count(likes.post_id) as likes_count, count(seens.post_id) as seens_count",
+        :group => "posts.id",
+        :order => "likes_count DESC, seens_count DESC"
+	}
+
+	tag = params[:tag]
+	if tag
+		query_parameters[:conditions] = [ "tags.text = :tag" , { :tag => tag.upcase } ]
+	end
+
+	posts = Post.find(:all, query_parameters)
 	result = {:posts => [], :pages_count => (Post.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil, :page => page}
 	posts.each do |p|
 		array = result[:posts]
@@ -86,7 +94,7 @@ post %r{^/posts/(\d+)/likes/?$} do
 	rescue
 		halt 500, "Couldn't create like"
 	end
-	""
+	status 200
 end
 
 post %r{^/posts/(\d+)/seens/?$} do
@@ -99,10 +107,10 @@ post %r{^/posts/(\d+)/seens/?$} do
 	rescue
 		halt 500, "Couldn't create like"
 	end
-	""
+	status 200
 end
 
-post %r{^/posts/(\d+)/comments/$} do
+post %r{^/posts/(\d+)/comments/?$} do
 	post_id = params[:captures][0]
 	begin
 		post = Post.find(post_id)
@@ -121,7 +129,7 @@ post %r{^/posts/(\d+)/comments/$} do
 	halt 500, "Couldn't create the comment" unless comment.save
 end
 
-get %r{^/posts/(\d+)/comments/$} do
+get %r{^/posts/(\d+)/comments/?$} do
 	post_id = params[:captures][0]
 	page = params[:page].to_i
 	page = 1 if page == 0

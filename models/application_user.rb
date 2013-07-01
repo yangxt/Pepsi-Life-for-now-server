@@ -5,4 +5,54 @@ class ApplicationUser < ActiveRecord::Base
 	has_many :likes, :inverse_of => :application_user
 	has_many :seens, :inverse_of => :application_user
 	has_many :comments, :inverse_of => :application_user
+
+	def friends
+		friends = ApplicationUser.find(
+			:all,
+			:joins => "INNER JOIN friendships ON application_users.id = friendships.user1_id LEFT JOIN coordinates ON friendships.user1_id = coordinates.application_user_id",
+			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
+			:group => "application_users.id, coordinates.id",
+			:conditions => ["user2_id = :id", {:id => self.id}]
+		)
+
+		friends.concat(ApplicationUser.find(
+			:all,
+			:joins => "INNER JOIN friendships ON application_users.id = friendships.user2_id LEFT JOIN coordinates ON friendships.user2_id = coordinates.application_user_id",
+			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
+			:group => "application_users.id, coordinates.id",
+			:conditions => ["user1_id = :id", {:id => self.id}]
+		))
+	end
+
+	def friends_in_bounds(bounds)
+		friends = ApplicationUser.find(
+			:all,
+			:joins => "INNER JOIN friendships ON application_users.id = friendships.user1_id LEFT JOIN coordinates ON friendships.user1_id = coordinates.application_user_id",
+			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
+			:group => "application_users.id, coordinates.id",
+			:conditions => ["user2_id = :id and \
+				coordinates.latitude >= :from_lat and coordinates.latitude <= :to_lat and\
+				coordinates.longitude >= :from_long and coordinates.longitude <= :to_long", 
+				{:id => self.id,
+				:from_lat => bounds[:from_lat],
+				:to_lat => bounds[:to_lat],
+				:from_long => bounds[:from_long],
+				:to_long => bounds[:to_long]}]
+		)
+
+		friends.concat(ApplicationUser.find(
+			:all,
+			:joins => "INNER JOIN friendships ON application_users.id = friendships.user2_id LEFT JOIN coordinates ON friendships.user2_id = coordinates.application_user_id",
+			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
+			:group => "application_users.id, coordinates.id",
+			:conditions => ["user1_id = :id and \
+				coordinates.latitude >= :from_lat and coordinates.latitude <= :to_lat and\
+				coordinates.longitude >= :from_long and coordinates.longitude <= :to_long", 
+				{:id => self.id,
+				:from_lat => bounds[:from_lat],
+				:to_lat => bounds[:to_lat],
+				:from_long => bounds[:from_long],
+				:to_long => bounds[:to_long]}]
+		))
+	end
 end
