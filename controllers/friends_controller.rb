@@ -26,7 +26,7 @@ post %r{^/friends/?$} do
 
 	{
 		"friend_url" => "/friends/" + friend_id.to_s + "/"
-	}
+	}.to_json
 end
 
 get %r{^/friends/?$} do

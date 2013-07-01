@@ -8,8 +8,12 @@ require './helpers/authentication'
 require './controllers/users_controller'
 require './controllers/posts_controller'
 require './controllers/friends_controller'
+require './controllers/images_controller'
 
 API_KEY = "nd6YyykHsCygZZi64F"
+
+Dir.mkdir("public") unless File.exists?("public")
+Dir.mkdir("public/images") unless File.exists?("public/images")
 
 helpers do
 	include Sinatra::Authentication
@@ -17,6 +21,7 @@ end
 
 configure do
 	mime_type :json, "application/json"
+	mime_type :png, "image/png"
 	ActiveRecord::Base.default_timezone = :utc
 end
 
@@ -25,7 +30,9 @@ before do
 		api_key != API_KEY
 		halt 403, "You must add a valid API key to every request"
 	end
-	if (body = request.body.read) != ""
+
+	if (request.content_type == "application/json" &&
+		(body = request.body.read) != "")
 		begin
 			json = JSON.parse(body)
 			@json = json;
@@ -36,7 +43,7 @@ before do
 	content_type :json
 end
 
-before %r{^(?!/users/?$).*} do
+before %r{^(?!(/users/?)|(/images/?)$).*} do
 	@user = authenticate
 end
 
