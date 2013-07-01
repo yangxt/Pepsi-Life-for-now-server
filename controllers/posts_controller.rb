@@ -98,7 +98,7 @@ post %r{^/posts/(\d+)/likes/?$} do
 		post = Post.find(id)
 		Like.where(:post_id => post.id, :application_user_id => @user.id).first_or_create!
 	rescue ActiveRecord::RecordNotFound
-		halt 404, "Non-existing post"
+		halt 404
 	rescue
 		halt 500, "Couldn't create like"
 	end
@@ -111,7 +111,7 @@ post %r{^/posts/(\d+)/seens/?$} do
 		post = Post.find(id)
 		Seen.where(:post_id => post.id, :application_user_id => @user.id).first_or_create!
 	rescue ActiveRecord::RecordNotFound
-		halt 404, "Non-existing post"
+		halt 404
 	rescue
 		halt 500, "Couldn't create like"
 	end
@@ -123,7 +123,7 @@ post %r{^/posts/(\d+)/comments/?$} do
 	begin
 		post = Post.find(post_id)
 	rescue ActiveRecord::RecordNotFound
-		halt 404, "Non-existing post"
+		halt 404
 	end
 	schema = Schemas.schemas[:comments_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
@@ -145,7 +145,7 @@ get %r{^/posts/(\d+)/comments/?$} do
 	begin
 		post = Post.find(post_id)
 	rescue ActiveRecord::RecordNotFound
-		halt 404, "Non-existing post"
+		halt 404
 	end
 
 	result = {:comments => [], :page => page, :pages_count => (post.comments.count.to_f / Constants::COMMENTS_PER_PAGE.to_f).ceil}
@@ -159,6 +159,44 @@ get %r{^/posts/(\d+)/comments/?$} do
 				:image_url => c.application_user.image_url
 			},
 			:creation_date => c.creation_date
+		}
+	end
+	result.to_json
+end
+
+get %r{^/me/posts/?$} do
+	page = params[:page].to_i
+	page = 1 if page == 0
+	start_page = (page - 1) * Constants::POSTS_PER_PAGE
+	only_friends = params[:only_friends] == "true"
+
+	query_parameters = {
+		:limit => Constants::POSTS_PER_PAGE,
+		:offset => start_page,
+       	:joins => "LEFT JOIN likes ON posts.id = likes.post_id LEFT JOIN seens ON posts.id = seens.post_id LEFT JOIN tags ON posts.id = tags.post_id",
+       	:select => "posts.*, count(posts.id) as posts_count, count(likes.post_id) as likes_count, count(seens.post_id) as seens_count",
+        :group => "posts.id",
+        :order => "likes_count DESC, seens_count DESC",
+        :conditions => ["posts.application_user_id = :user", {:user => @user.id}]
+	}
+
+	posts = Post.find(:all, query_parameters)
+	result = {:posts => [], :pages_count => (Post.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil, :page => page}
+
+	posts.each do |p|
+		array = result[:posts]
+		tags = []
+		p.tags.each do |t|
+			tags << t.text
+		end
+		array << {
+			:id => p.id,
+			:text => p.text,
+			:image_url => p.image_url,
+			:tags => tags,
+			:creation_date => p.creation_date,
+			:likes_count => p.likes_count,
+			:seens_count => p.seens_count,
 		}
 	end
 	result.to_json

@@ -64,5 +64,14 @@ patch %r{^/users/(\d+)/?$} do
 		@user[k] = e
 	end
 	halt 500, "Couldn't patch the user" unless @user.save
+end
 
+get %r{^/me/?$} do
+	{
+		"id" => @user.id,
+		"username" => @user.username,
+		"name" => @user.name,
+		"seens" => @user.seens.count,
+		"likes" => @user.likes.count
+	}.to_json
 end

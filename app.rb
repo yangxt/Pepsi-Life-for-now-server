@@ -5,6 +5,7 @@ require 'sinatra/activerecord'
 require './config/environments' #database configuration
 require 'json'
 require './helpers/authentication'
+require './helpers/constants'
 require './controllers/users_controller'
 require './controllers/posts_controller'
 require './controllers/friends_controller'
@@ -12,8 +13,8 @@ require './controllers/images_controller'
 
 API_KEY = "nd6YyykHsCygZZi64F"
 
-Dir.mkdir("public") unless File.exists?("public")
-Dir.mkdir("public/images") unless File.exists?("public/images")
+Dir.mkdir(Constants::DATA_PATH) unless File.exists?(Constants::DATA_PATH)
+Dir.mkdir(Constants::IMAGES_PATH) unless File.exists?(Constants::IMAGES_PATH)
 
 helpers do
 	include Sinatra::Authentication

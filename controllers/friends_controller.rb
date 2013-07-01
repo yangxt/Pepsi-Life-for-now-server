@@ -14,7 +14,7 @@ post %r{^/friends/?$} do
 	begin
 		friend = ApplicationUser.find(friend_id)
 	rescue ActiveRecord::RecordNotFound
-		halt 404, "Non-existing user"
+		halt 404
 	end
 
 	halt 400, "You can't be your own friend" if friend == @user
