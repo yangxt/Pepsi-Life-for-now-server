@@ -66,6 +66,70 @@ patch %r{^/users/(\d+)/?$} do
 	halt 500, "Couldn't patch the user" unless @user.save
 end
 
+get %r{^/users/} do
+	page = params[:page].to_i
+	page = 1 if page == 0
+	start_page = (page - 1) * Constants::USERS_PER_PAGE
+
+	query_parameters = {
+		:limit => Constants::USERS_PER_PAGE,
+		:offset => start_page,
+       	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
+       	:select => "application_users.id, application_users.name, application_users.image_url, coordinates.latitude, coordinates.longitude",
+        :group => "application_users.id, coordinates.id",
+        :order => "application_users.id ASC",
+        :conditions => ["application_users.id != :user", {:user => @user.id}]
+	}
+
+	bounds = {
+		:from_lat => params[:from_lat],
+		:to_lat => params[:to_lat],
+		:from_long => params[:from_long],
+		:to_long => params[:to_long]
+	}
+
+	all_bounds_provided = true
+
+	bounds.each_value do |v|
+		if !v
+			all_bounds_provided = false;
+			break
+		end
+	end
+
+	if all_bounds_provided
+		condition = " and coordinates.latitude >= :from_lat and coordinates.latitude <= :to_lat and\
+		coordinates.longitude >= :from_long and coordinates.longitude <= :to_long"
+		conditions = query_parameters[:conditions]
+		conditions[0] << condition
+		conditions[1].merge!(bounds)
+		users_count_parameters = {
+			:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
+			:select => "count(application_users.id) as count",
+			:conditions => conditions
+		}
+		users_count = ApplicationUser.find(:all, users_count_parameters)[0].count
+	else
+		users_count = ApplicationUser.count - 1
+	end
+
+	users = ApplicationUser.find(:all, query_parameters);
+
+	result = {:users => [], :pages_count => ((users_count).to_f / Constants::USERS_PER_PAGE.to_f).ceil, :page => page}
+	users.each do |u|
+		result[:users] << {
+			:id => u.id,
+			:name => u.name,
+			:image_url => u.image_url,
+			:coordinate => {
+				:latitude => u.latitude,
+				:longitude => u.longitude
+			}
+		}
+	end
+	result.to_json
+end
+
 get %r{^/me/?$} do
 	{
 		"id" => @user.id,
