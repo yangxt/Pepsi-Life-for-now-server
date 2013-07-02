@@ -48,8 +48,8 @@ post %r{^/users/?$} do
 	 			"password" => user.password
 			}.to_json
 		end
-	rescue
-		halt 500, "The user couldn't be created"
+	rescue Exception=>e
+		halt 500, "The user couldn't be created\n#{e}"
 	end
 end
 
@@ -115,6 +115,7 @@ get %r{^/users/} do
 	users = ApplicationUser.find(:all, query_parameters);
 
 	result = {:users => [], :pages_count => ((users_count).to_f / Constants::USERS_PER_PAGE.to_f).ceil, :page => page}
+	friends = @user.friends
 	users.each do |u|
 		result[:users] << {
 			:id => u.id,
@@ -123,7 +124,8 @@ get %r{^/users/} do
 			:coordinate => {
 				:latitude => u.latitude,
 				:longitude => u.longitude
-			}
+			},
+			:friend => friends.include?(u)
 		}
 	end
 	result.to_json
@@ -134,7 +136,7 @@ get %r{^/me/?$} do
 		"id" => @user.id,
 		"username" => @user.username,
 		"name" => @user.name,
-		"seens" => @user.seens.count,
-		"likes" => @user.likes.count
+		"seens_count" => @user.seens.count,
+		"likes_count" => @user.likes.count
 	}.to_json
 end

@@ -50,26 +50,44 @@ get %r{^/posts/?$} do
 	query_parameters = {
 		:limit => Constants::POSTS_PER_PAGE,
 		:offset => start_page,
-       	:joins => "LEFT JOIN likes ON posts.id = likes.post_id LEFT JOIN seens ON posts.id = seens.post_id LEFT JOIN tags ON posts.id = tags.post_id",
-       	:select => "posts.*, count(posts.id) as posts_count, count(likes.post_id) as likes_count, count(seens.post_id) as seens_count",
-        :group => "posts.id",
-        :order => "likes_count DESC, seens_count DESC"
+       	:joins => "LEFT JOIN likes ON posts.id = likes.post_id LEFT JOIN seens ON posts.id = seens.post_id LEFT JOIN tags ON posts.id = tags.post_id LEFT JOIN application_users ON posts.application_user_id = application_users.id",
+       	:select => "posts.*, count(posts.id) as posts_count, count(likes.post_id) as likes_count, count(seens.post_id) as seens_count, application_users.name as user_name, application_users.image_url as user_image_url",
+        :group => "posts.id, application_users.id",
+        :order => "likes_count DESC, seens_count DESC",
+        :conditions => ["", {}]
+	}
+
+	count_query_parameters = {
+		:joins => "",
+		:conditions => query_parameters[:conditions]
 	}
 
 	tag = params[:tag]
 	if tag
-		query_parameters[:conditions] = [ "tags.text = :tag" , { :tag => tag.upcase } ]
+		conditions = query_parameters[:conditions]
+		conditions[0] << "tags.text = :tag"
+		conditions[1].merge!({:tag => tag.upcase})
+		count_query_parameters[:joins] << "INNER JOIN tags ON posts.id = tags.post_id"
 	end
 
-	posts = Post.find(:all, query_parameters)
-	result = {:posts => [], :pages_count => (Post.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil, :page => page}
 	if only_friends
-		friends = @user.friends
+		conditions = query_parameters[:conditions]
+		conditions[0] << " and " unless conditions[0] == ""
+		conditions[0] << "((friendships.user1_id = :user and friendships.user2_id = posts.application_user_id) or (friendships.user1_id = posts.application_user_id and friendships.user2_id = :user))"
+		conditions[1].merge!({:user => @user.id})
+		joins = query_parameters[:joins]
+		joins << " INNER JOIN friendships ON (posts.application_user_id = friendships.user1_id or posts.application_user_id = friendships.user2_id)"
+		count_joins = count_query_parameters[:joins]
+		count_joins << " " unless count_joins == ""
+		count_joins << "INNER JOIN friendships ON (posts.application_user_id = friendships.user1_id or posts.application_user_id = friendships.user2_id)"
 	end
+
+	posts_count = Post.count(count_query_parameters)
+	puts "count : " +  posts_count.to_s
+	posts = Post.find(:all, query_parameters)
+	result = {:posts => [], :pages_count => (posts_count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil, :page => page}
+
 	posts.each do |p|
-		if only_friends
-			next unless friends.include?(p.application_user)
-		end
 		array = result[:posts]
 		tags = []
 		p.tags.each do |t|
@@ -84,8 +102,8 @@ get %r{^/posts/?$} do
 			:likes_count => p.likes_count,
 			:seens_count => p.seens_count,
 			:owner => {
-				:name => p.application_user.name,
-				:image_url => p.application_user.image_url
+				:name => p.user_name,
+				:image_url => p.user_image_url
 			}
 		}
 	end
@@ -99,8 +117,8 @@ post %r{^/posts/(\d+)/likes/?$} do
 		Like.where(:post_id => post.id, :application_user_id => @user.id).first_or_create!
 	rescue ActiveRecord::RecordNotFound
 		halt 404
-	rescue
-		halt 500, "Couldn't create like"
+	rescue Exceptoin => e
+		halt 500, "Couldn't create like\n#{e}"
 	end
 	status 200
 end
@@ -112,8 +130,8 @@ post %r{^/posts/(\d+)/seens/?$} do
 		Seen.where(:post_id => post.id, :application_user_id => @user.id).first_or_create!
 	rescue ActiveRecord::RecordNotFound
 		halt 404
-	rescue
-		halt 500, "Couldn't create like"
+	rescue Exception => e
+		halt 500, "Couldn't create seen\n#{e}"
 	end
 	status 200
 end
@@ -127,7 +145,7 @@ post %r{^/posts/(\d+)/comments/?$} do
 	end
 	schema = Schemas.schemas[:comments_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
-	halt is_valid[1] unless is_valid[0]
+	halt 400, is_valid[1] unless is_valid[0]
 
 	comment = Comment.new
 	comment.text = @json["text"]
@@ -153,6 +171,7 @@ get %r{^/posts/(\d+)/comments/?$} do
 	comments.each do |c|
 		array = result[:comments]
 		array << {
+			:id => c.id,
 			:text => c.text,
 			:owner => {
 				:name => c.application_user.name,
@@ -201,8 +220,3 @@ get %r{^/me/posts/?$} do
 	end
 	result.to_json
 end
-
-
-
-
-

@@ -27,6 +27,10 @@ configure do
 end
 
 before do
+	unless request.env["REQUEST_PATH"] =~ (%r{^/users/?}) &&
+		request.env["REQUEST_METHOD"] == "POST"
+		@user = authenticate
+	end
 	if !(api_key = params[:api_key]) || 
 		api_key != API_KEY
 		halt 403, "You must add a valid API key to every request"
@@ -42,10 +46,6 @@ before do
 		end
 	end
 	content_type :json
-end
-
-before %r{^(?!(/users/?)|(/images/?)$).*} do
-	@user = authenticate
 end
 
 not_found do

@@ -5,7 +5,7 @@ require './models/application_user'
 require './models/friendship'
 require './schemas/friends_POST'
 
-post %r{^/friends/?$} do
+post %r{^/me/friends/?$} do
 	schema = Schemas.schemas[:friends_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
 	halt 400, is_valid[1] unless is_valid[0]
@@ -25,11 +25,11 @@ post %r{^/friends/?$} do
 	end
 
 	{
-		"friend_url" => "/friends/" + friend_id.to_s + "/"
+		"friend_url" => "me/friends/" + friend_id.to_s + "/"
 	}.to_json
 end
 
-get %r{^/friends/?$} do
+get %r{^/me/friends/?$} do
 	bounds = {
 		:from_lat => params[:from_lat],
 		:to_lat => params[:to_lat],
@@ -50,7 +50,7 @@ get %r{^/friends/?$} do
 		friends = @user.friends
 	end
 
-	results = []
+	results = {:friends => []}
 	friends.each do |f|
 		friend = {
 			:name => f.name,
@@ -60,7 +60,7 @@ get %r{^/friends/?$} do
 				:longitude => f.longitude
 			}
 		}
-		results << friend
+		results[:friends] << friend
 	end
 	results.to_json
 end
