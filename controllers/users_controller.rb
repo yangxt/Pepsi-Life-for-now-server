@@ -105,14 +105,13 @@ get %r{^/users/} do
 		conditions[1].merge!(bounds)
 		users_count_parameters = {
 			:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
-			:select => "count(application_users.id) as count",
 			:conditions => conditions
 		}
-		users_count = ApplicationUser.find(:all, users_count_parameters)[0].count
+		puts users_count_parameters
+		users_count = ApplicationUser.count(users_count_parameters)
 	else
 		users_count = ApplicationUser.count - 1
 	end
-
 	users = ApplicationUser.find(:all, query_parameters);
 
 	result = {:users => [], :pages_count => ((users_count).to_f / Constants::USERS_PER_PAGE.to_f).ceil, :page => page}
