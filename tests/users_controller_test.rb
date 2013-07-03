@@ -44,7 +44,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_not_nil(json["password"], "password doesn't match")
 
 		saved_users = ApplicationUser.all
-		assert_equal(saved_users.length, 1)
+		assert_equal(saved_users.length, 1, "number of users added doesn't match")
 		saved_user = saved_users[0]
 		assert_equal(saved_user.username, json["username"], "username doesn't match")
 		assert_equal(saved_user.password, json["password"], "passwor doesn't match")
@@ -163,7 +163,9 @@ class UsersControllerTest < Test::Unit::TestCase
 		users = TestTools.create_x_users(27)
 		posts = []
 		users.each_index do |i|
-			TestTools.create_coordinate_with_user(users[i], i + 0.1, i + 1.1)
+			if i > 3
+				TestTools.create_coordinate_with_user(users[i], i + 0.1, i + 1.1)
+			end
 			if i < 13
 				TestTools.create_friendship(me, users[i])
 			end
@@ -178,7 +180,7 @@ class UsersControllerTest < Test::Unit::TestCase
 			end
 		end
 
-		for j in 0...3
+		for j in 0...(users.length.to_f/Constants::USERS_PER_PAGE.to_f).ceil
 			request = TestTools.request
 			TestTools.authenticate(request, me)
 			page = j+1
@@ -200,14 +202,58 @@ class UsersControllerTest < Test::Unit::TestCase
 				assert_equal(retrieved_user["id"], real_user.id, "id doesn't match")
 				assert_equal(retrieved_user["name"], real_user.name, "name doesn't match")
 				assert_equal(retrieved_user["image_url"], real_user.image_url, "image_url doesn't match")
-				assert_equal(retrieved_user["coordinate"]["latitude"], real_user.coordinate.latitude, "latitude doesn't match")
-				assert_equal(retrieved_user["coordinate"]["longitude"], real_user.coordinate.longitude, "longitude doesn't match")
+
+				if retrieved_user["coordinate"] == "null"
+					assert_nil(real_user.coordinate)
+				else
+					assert_equal(retrieved_user["coordinate"]["latitude"], real_user.coordinate.latitude, "latitude doesn't match")
+					assert_equal(retrieved_user["coordinate"]["longitude"], real_user.coordinate.longitude, "longitude doesn't match")
+				end
 				is_friend = false
 				is_friend = true if Friendship.where(:user1_id => me.id, :user2_id => real_user.id).length >= 1
 				assert_equal(retrieved_user["friend"], is_friend, "friend doesn't match")
 				assert_equal(retrieved_user["seens_count"], real_user.seens.count, "seens_count doesn't match")
 				assert_equal(retrieved_user["likes_count"], real_user.likes.count, "likes_count doesn't match")
 			end
+		end
+	end
+
+	def test_get_user_with_bounds
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		users = TestTools.create_x_users(9)
+		users_in_bounds = []
+		latitude_bounds = {
+			:max => 23.2,
+			:min => 12.4
+		}
+		longitude_bounds = {
+			:max => 65.2,
+			:min => 24.2
+		}
+		users.each_index do |i|
+			if i < 5
+				latitude = Random.rand(latitude_bounds[:min]..latitude_bounds[:max])
+				longitude = Random.rand(longitude_bounds[:min]..longitude_bounds[:max])
+				users_in_bounds << users[i]
+			else
+				latitude = Random.rand(0.0..latitude_bounds[:min])
+				longitude = Random.rand(longitude_bounds[:max]..100.0)
+			end
+			TestTools.create_coordinate_with_user(users[i], latitude, longitude)
+		end
+
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+		response = TestTools.get(request, "/users/?from_lat=#{latitude_bounds[:min]}&to_lat=#{latitude_bounds[:max]}&from_long=#{longitude_bounds[:min]}&to_long=#{longitude_bounds[:max]}")
+		assert_equal(response.status, 200, "status code doesn't match")
+
+		json = JSON.parse(response.body)
+		retrieved_users = json["users"]
+		assert_equal(users_in_bounds.length, retrieved_users.length, "not the same number of users retrieved")
+		retrieved_users.each_index do |i|
+			retrieved_user = retrieved_users[i]
+			real_user = users_in_bounds[i]
+			assert_equal(retrieved_user["id"], real_user.id)
 		end
 	end
 end
