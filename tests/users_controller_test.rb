@@ -1,0 +1,213 @@
+require './app'
+require './controllers/users_controller'
+require 'test/unit'
+require 'rack/test'
+require 'json'
+require './models/application_user'
+require './models/coordinate'
+require './models/post'
+require './models/like'
+require './models/seen'
+require './models/friendship'
+require './tests/test_tools'
+require './helpers/constants'
+
+ENV['RACK_ENV'] = 'test'
+require './config/environments.rb'
+
+
+class UsersControllerTest < Test::Unit::TestCase
+	include Rack::Test::Methods
+
+	def app
+		Sinatra::Application
+	end
+
+	def setup
+	end
+
+	def teardown
+		ApplicationUser.delete_all
+		Coordinate.delete_all
+		Post.delete_all
+		Like.delete_all
+		Seen.delete_all
+		Friendship.delete_all
+	end
+
+	def test_post_user
+		request = TestTools.request
+		response = TestTools.post(request, "/users/", nil)
+		json = JSON.parse(response.body)
+		assert_equal(response.status, 200, "status code doesn't match")
+		assert_not_nil(json["username"], "username doesn't match")
+		assert_not_nil(json["password"], "password doesn't match")
+
+		saved_users = ApplicationUser.all
+		assert_equal(saved_users.length, 1)
+		saved_user = saved_users[0]
+		assert_equal(saved_user.username, json["username"], "username doesn't match")
+		assert_equal(saved_user.password, json["password"], "passwor doesn't match")
+		assert_nil(saved_user.image_url, "image_url not nil")
+		assert_nil(saved_user.name, "name not nil")
+		assert_nil(saved_user.description, "description not nil")
+	end
+
+	def test_put_me_geolocation
+		user = TestTools.create_user
+		request = TestTools.request
+		TestTools.authenticate(request, user)
+		body = {
+			"coordinates" => {
+				"lat" => 43.344,
+				"long" => 56.25 
+			}
+		}
+		response = TestTools.put(request, '/me/geolocation/', body)
+		assert_equal(response.status, 200, "status code doesn't match")
+
+		coordinate = Coordinate.first
+		assert_equal(coordinate.application_user_id, user.id, "user doesn't match")
+		assert_equal(coordinate.latitude, body["coordinates"]["lat"], "latitude doesn't match")
+		assert_equal(coordinate.longitude, body["coordinates"]["long"], "longitude doesn't match")
+	end
+
+	def test_patch_me
+		user = TestTools.create_user
+		request = TestTools.request
+		TestTools.authenticate(request, user)
+		body = {
+			"name" => "new_name",
+			"image_url" => "new_image_url"
+		}
+		response = TestTools.patch(request, '/me/', body)
+		assert_equal(response.status, 200, "status code doesn't match")
+
+		saved_user = ApplicationUser.first
+		assert_equal(saved_user, user, "user doesn't match")
+		assert_equal(saved_user.name, body["name"], "name doesn't match")
+		assert_equal(saved_user.image_url, body["image_url"], "image_url doesn't match")
+	end
+
+	def test_patch_me_only_name
+		user = TestTools.create_user
+		request = TestTools.request
+		TestTools.authenticate(request, user)
+		body = {
+			"name" => "new_name"
+		}
+		response = TestTools.patch(request, '/me/', body)
+		assert_equal(response.status, 200)
+
+		saved_user = ApplicationUser.first
+		assert_equal(saved_user, user, "user doesn't match")
+		assert_equal(saved_user.name, body["name"], "name doesn't match")
+		assert_equal(saved_user.image_url, "image_url0", "image_url doesn't match")
+	end
+
+	def test_patch_me_only_image_url
+		user = TestTools.create_user
+		request = TestTools.request
+		TestTools.authenticate(request, user)
+		body = {
+			"image_url" => "new_image_url"
+		}
+		response = TestTools.patch(request, '/me/', body)
+		assert_equal(response.status, 200, "status code doesn't match")
+
+		saved_user = ApplicationUser.first
+		assert_equal(saved_user, user, "user doesn't match")
+		assert_equal(saved_user.name, "name0", "name doesn't match")
+		assert_equal(saved_user.image_url, body["image_url"], "image_url doesn't match")
+	end
+
+	def test_get_me
+		users = TestTools.create_x_users(10)
+		posts = []
+		for i in 0...users.length
+			post = TestTools.create_post_with("text#{i}", "image_url#{i}", DateTime.now, users[i])
+			posts << post
+			TestTools.create_like_on_post_with_user(post, users[i])
+			if i < 7
+				TestTools.create_seen_on_post_with_user(post, users[i])
+			end
+		end
+
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+
+		for i in 0...posts.length
+			if i == 1 || i == 3
+				TestTools.create_like_on_post_with_user(post, me)
+			else
+				TestTools.create_seen_on_post_with_user(post, me)
+			end
+
+		end
+
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+
+		response = TestTools.get(request, '/me/')
+		assert_equal(response.status, 200, "status code doesn't match")
+
+		json = JSON.parse(response.body)
+		assert_equal(json["id"], me.id, "id doesn't match")
+		assert_equal(json["username"], me.username, "username doesn't match")
+		assert_equal(json["name"], me.name, "name doesn't match")
+		assert_equal(json["seens_count"], 8, "seens_count doesn't match")
+		assert_equal(json["likes_count"], 2, "likes_count doesn't match")
+	end
+
+	def test_get_users
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		users = TestTools.create_x_users(27)
+		posts = []
+		users.each_index do |i|
+			TestTools.create_coordinate_with_user(users[i], i + 0.1, i + 1.1)
+			if i < 13
+				TestTools.create_friendship(me, users[i])
+			end
+			if i < 15
+				post = TestTools.create_post_with("text#{i}", "image_url#{i}", DateTime.now, users[i])
+				posts << post
+				TestTools.create_like_on_post_with_user(post, users[i])
+				TestTools.create_seen_on_post_with_user(post, users[i])
+			else
+				TestTools.create_like_on_post_with_user(posts[i - 15], users[i])
+				TestTools.create_seen_on_post_with_user(posts[i - 14], users[i])
+			end
+		end
+
+		for j in 0...3
+			request = TestTools.request
+			TestTools.authenticate(request, me)
+			page = j+1
+			response = TestTools.get(request, '/users/?page=' + page.to_s)
+			assert_equal(response.status, 200, "status code doesn't match")
+
+			json = JSON.parse(response.body)
+			assert_equal(json["pages_count"], (users.length.to_f/Constants::USERS_PER_PAGE.to_f).ceil, "pages_count doesn't match")
+			assert_equal(json["page"], j+1, "page doesn't match")
+			retrieved_users = json["users"]
+			if j < 2
+				assert_equal(retrieved_users.length, Constants::USERS_PER_PAGE, "number of retrieved_users doesn't match")
+			else
+				assert_equal(retrieved_users.length, users.length - Constants::USERS_PER_PAGE * j , "number of retrieved_users doesn't match")
+			end
+			retrieved_users.each_index do |i|
+				retrieved_user = retrieved_users[i]
+				real_user = users[i + j * Constants::USERS_PER_PAGE]
+				assert_equal(retrieved_user["id"], real_user.id, "id doesn't match")
+				assert_equal(retrieved_user["name"], real_user.name, "name doesn't match")
+				assert_equal(retrieved_user["image_url"], real_user.image_url, "image_url doesn't match")
+				assert_equal(retrieved_user["coordinate"]["latitude"], real_user.coordinate.latitude, "latitude doesn't match")
+				assert_equal(retrieved_user["coordinate"]["longitude"], real_user.coordinate.longitude, "longitude doesn't match")
+				is_friend = false
+				is_friend = true if Friendship.where(:user1_id => me.id, :user2_id => real_user.id).length >= 1
+				assert_equal(retrieved_user["friend"], is_friend, "friend doesn't match")
+				assert_equal(retrieved_user["seens_count"], real_user.seens.count, "seens_count doesn't match")
+				assert_equal(retrieved_user["likes_count"], real_user.likes.count, "likes_count doesn't match")
+			end
+		end
+	end
+end
