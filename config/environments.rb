@@ -4,6 +4,7 @@ require 'yaml'
 # => postgres://{user}:{password}@{host}:{port}/path
 configure :production, :development, :test do
 	db = YAML.load_file('./config/database.yml')[ENV['RACK_ENV'] || 'development']
+	puts db
 	ActiveRecord::Base.establish_connection(
 			:adapter => db['adapter'] == 'postgres' ? 'postgresql' : db['adapter'],
 			:host     => db['host'],

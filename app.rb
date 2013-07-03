@@ -27,19 +27,20 @@ configure do
 end
 
 before do
-	unless request.env["REQUEST_PATH"] =~ (%r{^/users/?}) &&
-		request.env["REQUEST_METHOD"] == "POST"
+	unless request.path =~ (%r{^/users/?}) &&
+		request.request_method == "POST"
 		@user = authenticate
 	end
 	if !(api_key = params[:api_key]) || 
 		api_key != API_KEY
 		halt 403, "You must add a valid API key to every request"
 	end
-
 	if (request.content_type == "application/json" &&
 		(body = request.body.read) != "")
+		puts body
 		begin
 			json = JSON.parse(body)
+			puts
 			@json = json;
 		rescue JSON::ParserError => e
 			halt 400, "Invalid JSON: \n" + e.message
