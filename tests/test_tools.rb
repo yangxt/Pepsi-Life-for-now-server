@@ -13,6 +13,17 @@ require './config/environments.rb'
 
 module TestTools
 
+	def self.delete_all
+		ApplicationUser.delete_all
+		Post.delete_all
+		Tag.delete_all
+		Comment.delete_all
+		Like.delete_all
+		Seen.delete_all
+		Friendship.delete_all
+		Coordinate.delete_all
+	end
+
 	#Request
 	def self.request
 		request = Rack::Test::Session.new(Rack::MockSession.new(Sinatra::Application))
@@ -103,7 +114,8 @@ module TestTools
 	def self.create_x_posts_with_user(user, x)
 		array = []
 		for i in 0...x
-			array << create_post_with("text#{i}", "image_url#{i}", DateTime.now, user)
+			date = Time.now + i.days
+			array << create_post_with("text#{i}", "image_url#{i}", date, user)
 		end
 		array
 	end
@@ -115,11 +127,11 @@ module TestTools
 			:post => post
 		})
 	end
-	def self.create_tag_on_post(post)
+	def self.create_tag_with_post(post)
 		self.create_tag_with(post, "tag0")
 	end
 
-	def self.create_x_tags_on_post(post, x)
+	def self.create_x_tags_with_post(post, x)
 		array = []
 		for i in 0...x
 			array << self.create_tag_with(post, "tag#{i}")
@@ -154,9 +166,32 @@ module TestTools
 	def self.create_coordinate_with_user(user, lat, long)
 		Coordinate.create({
 			:application_user => user,
-			:latitude => 12,
-			:longitude => 13
+			:latitude => lat,
+			:longitude => long
 		})
+	end
+
+	#Comment
+	def self.create_comment_with(post, user, text, date)
+		Comment.create({
+			:text => text,
+			:post => post,
+			:application_user => user,
+			:creation_date => date
+		})
+	end
+
+	def self.create_comment_with_post_and_user(post, user)
+		self.create_comment_with(post, user, "text0", DateTime.now)
+	end
+
+	def self.create_x_comments_with_post_and_user(post, user, x)
+		array = []
+		for i in 0...x
+			date = Time.now + i.days
+			array << self.create_comment_with(post, user, "tag#{x}", date)
+		end
+		array
 	end
 
 end 

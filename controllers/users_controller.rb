@@ -44,61 +44,99 @@ get %r{^/users/} do
 	page = 1 if page == 0
 	start_page = (page - 1) * Constants::USERS_PER_PAGE
 
-	query_parameters = {
+	users_query_parameters = {
 		:limit => Constants::USERS_PER_PAGE,
 		:offset => start_page,
-       	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id LEFT JOIN likes ON application_users.id = likes.application_user_id LEFT JOIN seens ON application_users.id = seens.application_user_id ",
-       	:select => "application_users.id, application_users.name, application_users.image_url, coordinates.latitude, coordinates.longitude, coordinates.id as coordinates_id, count(likes.application_user_id) as likes_count, count(seens.application_user_id) as seens_count",
+       	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
+       	:select => "application_users.id, application_users.name, application_users.image_url, coordinates.latitude, coordinates.longitude, coordinates.id as coordinates_id",
         :group => "application_users.id, coordinates.id",
         :order => "application_users.id ASC",
         :conditions => ["application_users.id != :user", {:user => @user.id}]
 	}
 
-	bounds = {
+	################################################
+	#Conditions to select users bounded to coordinate
+
+	coordinate_bounds = {
 		:from_lat => params[:from_lat],
 		:to_lat => params[:to_lat],
 		:from_long => params[:from_long],
 		:to_long => params[:to_long]
 	}
 
-	all_bounds_provided = true
+	coordinate_bounds_provided = true
 
-	bounds.each_value do |v|
+	coordinate_bounds.each_value do |v|
 		if !v
-			all_bounds_provided = false;
+			coordinate_bounds_provided = false;
 			break
 		end
 	end
 
-	if all_bounds_provided
+	if coordinate_bounds_provided
 		condition = " and coordinates.latitude >= :from_lat and coordinates.latitude <= :to_lat and\
 		coordinates.longitude >= :from_long and coordinates.longitude <= :to_long"
-		conditions = query_parameters[:conditions]
+		conditions = users_query_parameters[:conditions]
 		conditions[0] << condition
-		conditions[1].merge!(bounds)
-		users_count_parameters = {
+		conditions[1].merge!(coordinate_bounds)
+		users_count_query_parameters = {
 			:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
 			:conditions => conditions
 		}
-		puts users_count_parameters
-		users_count = ApplicationUser.count(users_count_parameters)
+		users_count = ApplicationUser.count(users_count_query_parameters)
 	else
 		users_count = ApplicationUser.count - 1
 	end
-	users = ApplicationUser.find(:all, query_parameters);
-	puts "result : #{users}"
+
+	################################################
+
+	users = ApplicationUser.find(:all, users_query_parameters)
+	users_ids = []
+	users.each do |u|
+		users_ids << u.id
+	end
+
+	################################################
+	#Retrieve likes count for each user
+
+	likes_query_parameters = {
+		:joins => "LEFT JOIN likes ON likes.application_user_id = application_users.id",
+       	:select => "count(likes.id) as count",
+        :group => "application_users.id",
+        :order => "application_users.id ASC",
+        :conditions => ["application_users.id in (:users_ids)", {:users_ids => users_ids}]
+	}
+
+	likes_counts = ApplicationUser.find(:all, likes_query_parameters)
+
+	################################################
+	#Retrieve seens count for each user
+
+	seens_query_parameters = {
+		:joins => "LEFT JOIN seens ON seens.application_user_id = application_users.id",
+       	:select => "count(seens.id) as count",
+        :group => "application_users.id",
+        :order => "application_users.id ASC",
+        :conditions => ["application_users.id in (:users_ids)", {:users_ids => users_ids}]
+	}
+
+	seens_counts = ApplicationUser.find(:all, seens_query_parameters)
+
+	################################################
+	#Build the response
+
 	number_of_pages = ((users_count).to_f / Constants::USERS_PER_PAGE.to_f).ceil
 	number_of_pages = 1 if number_of_pages == 0
 	result = {:users => [], :pages_count => number_of_pages, :page => page}
 	friends = @user.friends
-	users.each do |u|
+	users.each_with_index do |u, i|
 		user = {
 			:id => u.id,
 			:name => u.name,
 			:image_url => u.image_url,
 			:friend => friends.include?(u),
-			:seens_count => u.seens_count.to_i,
-			:likes_count => u.likes_count.to_i
+			:seens_count => seens_counts[i].count.to_i,
+			:likes_count => likes_counts[i].count.to_i
 		}
 		if u.coordinates_id
 			user[:coordinate] = {

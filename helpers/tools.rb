@@ -3,6 +3,7 @@ require 'json-schema'
 
 module Tools
 	def self.validate_against_schema(schema, json)
+		return false, "No JSON provided" if (!json || json == "")
 		begin
   			JSON::Validator.validate!(schema, json)
   			[true]
