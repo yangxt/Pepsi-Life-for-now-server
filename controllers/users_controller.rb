@@ -39,7 +39,7 @@ post %r{^/users/?$} do
 	end
 end
 
-get %r{^/users/} do
+get %r{^/users/?$} do
 	page = params[:page].to_i
 	page = 1 if page == 0
 	start_page = (page - 1) * Constants::USERS_PER_PAGE

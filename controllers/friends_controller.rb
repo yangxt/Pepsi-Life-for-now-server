@@ -53,14 +53,95 @@ get %r{^/me/friends/?$} do
 	results = {:friends => []}
 	friends.each do |f|
 		friend = {
+			:id => f.id,
 			:name => f.name,
 			:image_url => f.image_url,
-			:coordinate => {
-				:latitude => f.latitude,
-				:longitude => f.longitude
-			}
 		}
+		if f.latitude && f.longitude
+			friend[:coordinate] = {
+				:latitude => f.latitude.to_f,
+				:longitude => f.longitude.to_f
+			}
+		else
+			friend[:coordinate] = "null"
+		end
 		results[:friends] << friend
 	end
 	results.to_json
 end
+
+get %r{^/me/friends/(\d+)/posts/?$} do
+	puts "sfsodfjosdjfosdfo"
+	friend_id = params[:captures][0]
+	friend = @user.friend_by_id(friend_id)
+	halt 404 unless friend
+
+	page = params[:page].to_i
+	page = 1 if page == 0
+	start_page = (page - 1) * Constants::POSTS_PER_PAGE
+
+	################################################
+	#Get the posts
+
+	posts = Post.limit(Constants::POSTS_PER_PAGE).offset(start_page).order("creation_date DESC").where(:application_user_id => friend_id)
+	posts_ids = []
+	full_posts = []
+	posts.each do |p|
+		full_posts << {
+			:post => p
+		}
+		posts_ids << p.id
+	end
+
+	################################################
+	#Get the tag of the retrieved posts
+
+	tags = Post.tags_for_posts(posts)
+	tags.each do |t|
+		full_post = full_posts[posts_ids.index(t.post_id)]
+		full_post[:tags] = full_post[:tags] || []
+		full_post[:tags] << t.text
+	end
+
+		################################################
+	#Get the likes count of the retrieved posts
+
+	likes_counts = Post.likes_counts_for_posts(posts)
+	likes_counts.each do |l|
+		full_post = full_posts[posts_ids.index(l.post_id)]
+		full_post[:likes_count] = l.count
+	end
+
+	################################################
+	#Get the seens count of the retrieved posts
+
+	seens_counts = Post.seens_counts_for_posts(posts)
+	seens_counts.each do |s|
+		full_post = full_posts[posts_ids.index(s.post_id)]
+		full_post[:seens_count] = s.count
+	end
+
+	################################################
+	#Build the response
+
+	number_of_pages = (friend.posts.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil
+	number_of_pages = 1 if number_of_pages == 0
+
+	result = {:posts => [], :pages_count => number_of_pages, :page => page}
+
+	full_posts.each do |f|
+		array = result[:posts]
+		array << {
+			:id => f[:post].id,
+			:text => f[:post].text,
+			:image_url => f[:post].image_url,
+			:tags => f[:tags],
+			:creation_date => f[:post].creation_date,
+			:likes_count => f[:likes_count].to_i,
+			:seens_count => f[:seens_count].to_i,
+		}
+	end
+	result.to_json
+
+end
+
