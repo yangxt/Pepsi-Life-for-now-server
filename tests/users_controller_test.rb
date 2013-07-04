@@ -149,16 +149,16 @@ class UsersControllerTest < Test::Unit::TestCase
 
 	def test_get_users
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
-		users = TestTools.create_x_users(17)
+		users = TestTools.create_x_users(Constants::USERS_PER_PAGE + 7)
 		posts = []
 		users.each_index do |i|
 			if i > 3
 				TestTools.create_coordinate_with_user(users[i], i + 0.1, i + 1.1)
 			end
-			if i < 13
+			if i < Constants::USERS_PER_PAGE + 3
 				TestTools.create_friendship(me, users[i])
 			end
-			if i < 15
+			if i < Constants::USERS_PER_PAGE+ 15
 				post = TestTools.create_post_with("text#{i}", "image_url#{i}", DateTime.now, users[i])
 				posts << post
 				TestTools.create_like_on_post_with_user(post, users[i])
@@ -180,7 +180,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_equal(retrieved_users.length, 7, "number of retrieved_users doesn't match")
 
 		retrieved_users.each_with_index do |ru, i|
-			real_user = users[i + 10]
+			real_user = users[i + Constants::USERS_PER_PAGE]
 			assert_equal(ru["id"], real_user.id, "id doesn't match")
 			assert_equal(ru["name"], real_user.name, "name doesn't match")
 			assert_equal(ru["image_url"], real_user.image_url, "image_url doesn't match")
