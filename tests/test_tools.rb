@@ -114,7 +114,7 @@ module TestTools
 	def self.create_x_posts_with_user(user, x)
 		array = []
 		for i in 0...x
-			date = Time.now + i.days
+			date = DateTime.now - i.days
 			array << create_post_with("text#{i}", "image_url#{i}", date, user)
 		end
 		array
@@ -188,7 +188,7 @@ module TestTools
 	def self.create_x_comments_with_post_and_user(post, user, x)
 		array = []
 		for i in 0...x
-			date = Time.now + i.days
+			date = DateTime.now + i.days
 			array << self.create_comment_with(post, user, "tag#{x}", date)
 		end
 		array
