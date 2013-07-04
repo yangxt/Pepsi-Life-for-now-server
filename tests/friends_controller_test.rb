@@ -1,14 +1,5 @@
-require './app'
+require './tests/common'
 require './controllers/friends_controller'
-require 'test/unit'
-require 'rack/test'
-require 'json'
-require './helpers/constants'
-require './tests/test_tools'
-
-ENV['RACK_ENV'] = 'test'
-require './config/environments.rb'
-
 
 class FriendsControllerTest < Test::Unit::TestCase
 	include Rack::Test::Methods

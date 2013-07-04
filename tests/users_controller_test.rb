@@ -1,14 +1,5 @@
-require './app'
+require './tests/common'
 require './controllers/users_controller'
-require 'test/unit'
-require 'rack/test'
-require 'json'
-require './tests/test_tools'
-require './helpers/constants'
-
-ENV['RACK_ENV'] = 'test'
-require './config/environments.rb'
-
 
 class UsersControllerTest < Test::Unit::TestCase
 	include Rack::Test::Methods
