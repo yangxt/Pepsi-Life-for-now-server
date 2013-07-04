@@ -1,12 +1,8 @@
 require './tests/common'
-require './models/application_user'
-require './models/comment'
-require './models/coordinate'
-require './models/friendship'
-require './models/like'
-require './models/post'
-require './models/seen'
-require './models/tag'
+
+Dir["./models/*.rb"].each do |f|
+	require f
+end
 
 
 module TestTools

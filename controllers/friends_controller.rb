@@ -71,7 +71,6 @@ get %r{^/me/friends/?$} do
 end
 
 get %r{^/me/friends/(\d+)/posts/?$} do
-	puts "sfsodfjosdjfosdfo"
 	friend_id = params[:captures][0]
 	friend = @user.friend_by_id(friend_id)
 	halt 404 unless friend

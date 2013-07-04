@@ -162,7 +162,6 @@ get %r{^/me/?$} do
 end
 
 put %r{^/me/geolocation/?$} do
-	puts @user
 	schema = Schemas.schemas[:users_geolocation_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
 	halt 400, is_valid[1] unless is_valid[0]

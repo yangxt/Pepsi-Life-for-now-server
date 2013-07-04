@@ -95,7 +95,6 @@ class FriendsControllerTest < Test::Unit::TestCase
 			friends_objects << friend_object
 		end
 
-		puts friends_objects
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)

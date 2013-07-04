@@ -37,10 +37,8 @@ before do
 	end
 	if (request.content_type == "application/json" &&
 		(body = request.body.read) != "")
-		puts body
 		begin
 			json = JSON.parse(body)
-			puts
 			@json = json;
 		rescue JSON::ParserError => e
 			halt 400, "Invalid JSON: \n" + e.message

@@ -288,8 +288,6 @@ class PostsControllerTest < Test::Unit::TestCase
 	 	assert_equal(json["page"], 2, "page doesn't match")
 
 	 	retrieved_comments = json["comments"]
-	 	puts "comments : #{retrieved_comments}"
-	 	puts "real_comments : #{comments}"
 	 	assert_equal(retrieved_comments.length, 5)
 	 	for i in 0...retrieved_comments.length
 	 		retrieved_comment = retrieved_comments[i]
