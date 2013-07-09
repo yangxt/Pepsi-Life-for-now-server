@@ -40,19 +40,22 @@ post %r{^/users/?$} do
 end
 
 get %r{^/users/?$} do
-	page = params[:page].to_i
-	page = 1 if page == 0
-	start_page = (page - 1) * Constants::USERS_PER_PAGE
+	last_id = params[:last_id].to_i if params[:last_id] 
 
 	users_query_parameters = {
 		:limit => Constants::USERS_PER_PAGE,
-		:offset => start_page,
        	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
        	:select => "application_users.id, application_users.name, application_users.image_url, coordinates.latitude, coordinates.longitude, coordinates.id as coordinates_id",
         :group => "application_users.id, coordinates.id",
-        :order => "application_users.id ASC",
+        :order => "application_users.id DESC",
         :conditions => ["application_users.id != :user", {:user => @user.id}]
 	}
+
+	if last_id
+		conditions = users_query_parameters[:conditions]
+		conditions[0] << " and application_users.id < :last_id"
+		conditions[1][:last_id] = last_id
+	end
 
 	################################################
 	#Conditions to select users bounded to coordinate
@@ -79,13 +82,6 @@ get %r{^/users/?$} do
 		conditions = users_query_parameters[:conditions]
 		conditions[0] << condition
 		conditions[1].merge!(coordinate_bounds)
-		users_count_query_parameters = {
-			:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
-			:conditions => conditions
-		}
-		users_count = ApplicationUser.count(users_count_query_parameters)
-	else
-		users_count = ApplicationUser.count - 1
 	end
 
 	################################################
@@ -125,9 +121,7 @@ get %r{^/users/?$} do
 	################################################
 	#Build the response
 
-	number_of_pages = ((users_count).to_f / Constants::USERS_PER_PAGE.to_f).ceil
-	number_of_pages = 1 if number_of_pages == 0
-	result = {:users => [], :pages_count => number_of_pages, :page => page}
+	result = {:users => []}
 	friends = @user.friends
 	users.each_with_index do |u, i|
 		user = {

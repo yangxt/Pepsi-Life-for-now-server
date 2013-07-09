@@ -158,15 +158,14 @@ class UsersControllerTest < Test::Unit::TestCase
 				TestTools.create_seen_on_post_with_user(posts[i-1], users[i])
 			end
 		end
+		users.reverse!
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)
-		response = TestTools.get(request, '/users/?page=2')
+		response = TestTools.get(request, "/users/?last_id=#{users[Constants::USERS_PER_PAGE - 1].id}")
 		assert_equal(response.status, 200, "status code doesn't match")
 
 		json = JSON.parse(response.body)
-		assert_equal(json["pages_count"], 2, "pages_count doesn't match")
-		assert_equal(json["page"], 2, "page doesn't match")
 		retrieved_users = json["users"]
 		assert_equal(retrieved_users.length, 7, "number of retrieved_users doesn't match")
 
@@ -213,6 +212,7 @@ class UsersControllerTest < Test::Unit::TestCase
 			end
 			TestTools.create_coordinate_with_user(users[i], latitude, longitude)
 		end
+		users_in_bounds.reverse!
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)

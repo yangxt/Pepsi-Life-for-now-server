@@ -75,14 +75,12 @@ get %r{^/me/friends/(\d+)/posts/?$} do
 	friend = @user.friend_by_id(friend_id)
 	halt 404 unless friend
 
-	page = params[:page].to_i
-	page = 1 if page == 0
-	start_page = (page - 1) * Constants::POSTS_PER_PAGE
+	last_id = params[:last_id].to_i if params[:last_id] 
 
 	################################################
 	#Get the posts
 
-	posts = Post.limit(Constants::POSTS_PER_PAGE).offset(start_page).order("creation_date DESC").where(:application_user_id => friend_id)
+	posts = Post.limit(Constants::POSTS_PER_PAGE).order("posts.id DESC").where(["application_user_id = :friend_id and posts.id < :last_id", {:friend_id => friend_id, :last_id => last_id}])
 	posts_ids = []
 	full_posts = []
 	posts.each do |p|
@@ -123,10 +121,7 @@ get %r{^/me/friends/(\d+)/posts/?$} do
 	################################################
 	#Build the response
 
-	number_of_pages = (friend.posts.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil
-	number_of_pages = 1 if number_of_pages == 0
-
-	result = {:posts => [], :pages_count => number_of_pages, :page => page}
+	result = {:posts => []}
 
 	full_posts.each do |f|
 		array = result[:posts]

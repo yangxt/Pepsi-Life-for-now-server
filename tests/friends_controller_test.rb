@@ -180,7 +180,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 		TestTools.create_friendship(other_user, me)
 		TestTools.create_x_posts_with_user(other_user, 5)
 
-		posts = TestTools.create_x_posts_with_user(friend, 5 + Constants::POSTS_PER_PAGE)
+		posts = TestTools.create_x_posts_with_user(friend, Constants::POSTS_PER_PAGE + 5)
 		for i in 0...posts.length
 			if i < Constants::POSTS_PER_PAGE + 3
 				TestTools.create_x_tags_with_post(posts[i], 2)
@@ -189,15 +189,14 @@ class FriendsControllerTest < Test::Unit::TestCase
 				TestTools.create_seen_on_post_with_user(posts[i], me)
 			end
 		end
+		posts.reverse!
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)
-		response = TestTools.get(request, "/me/friends/#{friend.id}/posts/?page=2")
+		response = TestTools.get(request, "/me/friends/#{friend.id}/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
 		assert_equal(response.status, 200, "status code doesn't match")
 
 		json = JSON.parse(response.body)
-		assert_equal(json["pages_count"], 2, "pages_count doesn't match")
-		assert_equal(json["page"], 2, "page doesn't match")
 
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")

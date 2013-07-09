@@ -42,21 +42,22 @@ post %r{^/posts/?$} do
 end
 
 get %r{^/posts/?$} do
-	page = params[:page].to_i
-	page = 1 if page == 0
-	start_page = (page - 1) * Constants::POSTS_PER_PAGE
+	last_id = params[:last_id].to_i if params[:last_id] 
 
 	posts_query_parameters = {
 		:limit => Constants::POSTS_PER_PAGE,
-		:offset => start_page,
        	:joins => "LEFT JOIN application_users ON posts.application_user_id = application_users.id LEFT JOIN tags ON posts.id = tags.post_id",
        	:select => "posts.*, application_users.name as user_name, application_users.image_url as user_image_url",
         :group => "posts.id, application_users.id",
-        :order => "posts.creation_date DESC",
+        :order => "posts.id DESC",
         :conditions => ["posts.application_user_id != :user", {:user => @user.id}]
 	}
 
-	count_query_joins = "LEFT JOIN application_users ON posts.application_user_id = application_users.id"
+	if last_id
+		conditions = posts_query_parameters[:conditions]
+		conditions[0] << " and posts.id < :last_id"
+		conditions[1][:last_id] = last_id
+	end
 
 	################################################
 	#Conditions to retrieve only the posts created by friends
@@ -65,10 +66,8 @@ get %r{^/posts/?$} do
 	if only_friends
 		conditions = posts_query_parameters[:conditions]
 		conditions[0] << " and ((friendships.user1_id = :user and friendships.user2_id = posts.application_user_id) or (friendships.user1_id = posts.application_user_id and friendships.user2_id = :user))"
-		conditions[1].merge!({:user => @user.id})
 		join = " INNER JOIN friendships ON (posts.application_user_id = friendships.user1_id or posts.application_user_id = friendships.user2_id)"
 		posts_query_parameters[:joins] << join
-		count_query_joins << join
 	end
 
 	################################################
@@ -79,20 +78,7 @@ get %r{^/posts/?$} do
 		conditions = posts_query_parameters[:conditions]
 		conditions[0] << " and UPPER(tags.text) = UPPER(:tag)"
 		conditions[1].merge!({:tag => tag})
-		count_query_joins << " LEFT JOIN tags ON posts.id = tags.post_id"
 	end
-
-	################################################
-	#Count the number of posts following the conditions
-
-	###BUG HERE WITH JOINS####
-
-	count_query_parameters = {
-		:joins => count_query_joins,
-		:conditions => posts_query_parameters[:conditions],
-	}
-
-	posts_count = Post.count(count_query_parameters)
 
 	################################################
 	#Get the posts following the conditions
@@ -138,10 +124,7 @@ get %r{^/posts/?$} do
 	################################################
 	#Build the response
 
-	number_of_pages = (posts_count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil
-	number_of_pages = 1 if number_of_pages == 0
-
-	result = {:posts => [], :pages_count => number_of_pages, :page => page}
+	result = {:posts => []}
 
 	full_posts.each do |f|
 		array = result[:posts]
@@ -169,7 +152,7 @@ post %r{^/posts/(\d+)/likes/?$} do
 		Like.where(:post_id => post.id, :application_user_id => @user.id).first_or_create
 	rescue ActiveRecord::RecordNotFound
 		halt 404
-	rescue Exceptoin => e
+	rescue Exception => e
 		halt 500, "Couldn't create like\n#{e}"
 	end
 	status 200
@@ -209,17 +192,20 @@ end
 
 get %r{^/posts/(\d+)/comments/?$} do
 	post_id = params[:captures][0]
-	page = params[:page].to_i
-	page = 1 if page == 0
-	start_page = (page - 1) * Constants::COMMENTS_PER_PAGE
+	last_id = params[:last_id].to_i if params[:last_id] 
+
 	begin
 		post = Post.find(post_id)
 	rescue ActiveRecord::RecordNotFound
 		halt 404
 	end
 
-	result = {:comments => [], :page => page, :pages_count => (post.comments.count.to_f / Constants::COMMENTS_PER_PAGE.to_f).ceil}
-	comments = post.comments.order("creation_date DESC").limit(Constants::COMMENTS_PER_PAGE).offset(start_page)
+	result = {:comments => []}
+	if last_id
+		comments = post.comments.order("comments.id DESC").limit(Constants::COMMENTS_PER_PAGE).where(["comments.id < :last_id", {:last_id => last_id}])
+	else
+		comments = post.comments.order("comments.id DESC").limit(Constants::COMMENTS_PER_PAGE)
+	end
 	comments.each do |c|
 		array = result[:comments]
 		array << {
@@ -236,20 +222,23 @@ get %r{^/posts/(\d+)/comments/?$} do
 end
 
 get %r{^/me/posts/?$} do
-	page = params[:page].to_i
-	page = 1 if page == 0
-	start_page = (page - 1) * Constants::POSTS_PER_PAGE
+	last_id = params[:last_id].to_i if params[:last_id] 
 
 	################################################
 	#Get the posts
 
 	posts_query_parameters = {
 		:limit => Constants::POSTS_PER_PAGE,
-		:offset => start_page,
        	:select => "posts.*",
-        :order => "posts.creation_date DESC",
+        :order => "posts.id DESC",
         :conditions => ["posts.application_user_id = :user", {:user => @user.id}]
 	}
+
+	if last_id
+		conditions = posts_query_parameters[:conditions]
+		conditions[0] << " and posts.id < :last_id"
+		conditions[1][:last_id] = last_id
+	end
 
 	posts = Post.find(:all, posts_query_parameters)
 	posts_ids = []
@@ -292,9 +281,7 @@ get %r{^/me/posts/?$} do
 	################################################
 	#Build the response
 
-	number_of_pages = (@user.posts.count.to_f / Constants::POSTS_PER_PAGE.to_f).ceil
-	number_of_pages = 1 if number_of_pages == 0
-	result = {:posts => [], :pages_count => number_of_pages, :page => page}
+	result = {:posts => []}
 
 	full_posts.each do |f|
 		array = result[:posts]

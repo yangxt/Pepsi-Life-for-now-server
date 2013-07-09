@@ -50,7 +50,7 @@ class PostsControllerTest < Test::Unit::TestCase
 		users = TestTools.create_x_users(Constants::POSTS_PER_PAGE + 5)
 		posts = []
 		users.each_with_index do |u, i|
-			post = TestTools.create_post_with("text1", "image_url1", DateTime.now - i.days, u)
+			post = TestTools.create_post_with("text1", "image_url1", DateTime.now + i.days, u)
 			if i < Constants::POSTS_PER_PAGE + 3
 				TestTools.create_x_tags_with_post(post, 2)
 				TestTools.create_like_on_post_with_user(post, u)
@@ -59,17 +59,16 @@ class PostsControllerTest < Test::Unit::TestCase
 			end
 			posts << post
 		end
+		posts.reverse!
 
 		TestTools.create_x_posts_with_user(me, 3)
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)
-		response = TestTools.get(request, "/posts/?page=2")
+		response = TestTools.get(request, "/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
 		assert_equal(response.status, 200, "status code doesn't match")
 
 		json = JSON.parse(response.body)
-		assert_equal(json["pages_count"], 2, "pages_count doesn't match")
-		assert_equal(json["page"], 2, "page doesn't match")
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
 
@@ -98,7 +97,7 @@ class PostsControllerTest < Test::Unit::TestCase
 		end
 	end
 
-	def test_get_posts_only_friend
+	def test_get_posts_only_friends
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		users = TestTools.create_x_users(5)
 		names_of_friends = []
@@ -212,7 +211,6 @@ class PostsControllerTest < Test::Unit::TestCase
 		TestTools.authenticate(request, user)
 		response = TestTools.post(request, "/posts/#{post.id}/seens/", nil)
 		assert_equal(response.status, 200, "status code doesn't match")
-
 		assert_equal(post.seens.count, 2)
 	end
 
@@ -275,17 +273,16 @@ class PostsControllerTest < Test::Unit::TestCase
 	 	TestTools.create_x_comments_with_post_and_user(fake_post, me, 3)
 	 	comments = []
 	 	users.each_index do |i|
-	 		comments << (TestTools.create_comment_with(post, users[i], "text#{i}", DateTime.now - i.days))
+	 		comments << (TestTools.create_comment_with(post, users[i], "text#{i}", DateTime.now + i.days))
 	 	end
+	 	comments.reverse!
 
 	 	request = TestTools.request
 	 	TestTools.authenticate(request, me)
-	 	response = TestTools.get(request, "/posts/#{post.id}/comments/?page=2")
+	 	response = TestTools.get(request, "/posts/#{post.id}/comments/?last_id=#{comments[Constants::COMMENTS_PER_PAGE - 1].id}")
 	 	assert_equal(response.status, 200, "status code doesn't match")
 
 	 	json = JSON.parse(response.body)
-	 	assert_equal(json["pages_count"], 2, "pages_count doesn't match")
-	 	assert_equal(json["page"], 2, "page doesn't match")
 
 	 	retrieved_comments = json["comments"]
 	 	assert_equal(retrieved_comments.length, 5)
@@ -312,16 +309,15 @@ class PostsControllerTest < Test::Unit::TestCase
 				TestTools.create_seen_on_post_with_user(posts[i], me)
 			end
 		end
+		posts.reverse!
 		TestTools.create_x_posts_with_user(user, 10)
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)
-		response = TestTools.get(request, "/me/posts/?page=2")
+		response = TestTools.get(request, "/me/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
 		assert_equal(response.status, 200, "status code doesn't match")
 
 		json = JSON.parse(response.body)
-		assert_equal(json["pages_count"], 2, "pages_count doesn't match")
-		assert_equal(json["page"], 2, "page doesn't match")
 
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
