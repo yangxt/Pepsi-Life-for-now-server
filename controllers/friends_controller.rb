@@ -24,9 +24,11 @@ post %r{^/me/friends/?$} do
 		halt 500, "Couldn't add the user as a friend" unless Friendship.create(:user1 => @user, :user2 => friend)
 	end
 
-	{
+	result = {
 		"friend_url" => "me/friends/" + friend_id.to_s + "/"
-	}.to_json
+	}
+	body result.to_json
+	status 200
 end
 
 get %r{^/me/friends/?$} do
@@ -67,7 +69,8 @@ get %r{^/me/friends/?$} do
 		end
 		results[:friends] << friend
 	end
-	results.to_json
+	body results.to_json
+	status 200
 end
 
 get %r{^/me/friends/(\d+)/posts/?$} do
@@ -135,7 +138,7 @@ get %r{^/me/friends/(\d+)/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 		}
 	end
-	result.to_json
-
+	body result.to_json
+	status 200
 end
 

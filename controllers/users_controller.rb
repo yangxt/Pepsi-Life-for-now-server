@@ -28,11 +28,13 @@ post %r{^/users/?$} do
 			user.username = "username" + user.id.to_s
 			user.save!
 
-			{
+			result = {
 				"id" => user.id,
 	 			"username" => user.username,
 	 			"password" => user.password
-			}.to_json
+			}
+			body result.to_json
+			status 200
 		end
 	rescue Exception=>e
 		halt 500, "The user couldn't be created\n#{e}"
@@ -142,17 +144,20 @@ get %r{^/users/?$} do
 		end
 		result[:users] << user
 	end
-	result.to_json
+	body result.to_json
+	status 200
 end
 
 get %r{^/me/?$} do
-	{
+	result =  {
 		"id" => @user.id,
 		"username" => @user.username,
 		"name" => @user.name,
 		"seens_count" => @user.seens.count,
 		"likes_count" => @user.likes.count
-	}.to_json
+	}
+	body result.to_json
+	status 200
 end
 
 put %r{^/me/geolocation/?$} do
@@ -164,6 +169,8 @@ put %r{^/me/geolocation/?$} do
 	coordinate.latitude = @json["coordinates"]["lat"]
 	coordinate.longitude = @json["coordinates"]["long"]
 	halt 500, "Couldn't create the location" unless coordinate.save
+	body "{}"
+	status 200
 end
 
 patch %r{^/me/?$} do
@@ -175,5 +182,7 @@ patch %r{^/me/?$} do
 		@user[k] = e
 	end
 	halt 500, "Couldn't patch the user" unless @user.save
+	body "{}"
+	status 200
 end
 

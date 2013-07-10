@@ -10,9 +10,11 @@ post %r{^/images/?$} do
 		f.write request.body.read
 	end
 
-	{
+	result = {
 		"url" => "images/" + identifier
-	}.to_json
+	}
+	body result.to_json
+	status 200
 end
 
 get %r{^/images/(\d+)/?$} do
@@ -25,5 +27,6 @@ get %r{^/images/(\d+)/?$} do
 	file.close
 
 	content_type :png
-	content
+	body content
+	status 200
 end

@@ -38,7 +38,8 @@ post %r{^/posts/?$} do
 	rescue
 		halt 500, "Couldn't create the post\n" + $!.message 
 	end
-	""
+	body "{}"
+	status 200
 end
 
 get %r{^/posts/?$} do
@@ -142,7 +143,9 @@ get %r{^/posts/?$} do
 			}
 		}
 	end
-	result.to_json
+
+	body result.to_json
+	status 200
 end
 
 post %r{^/posts/(\d+)/likes/?$} do
@@ -157,6 +160,7 @@ post %r{^/posts/(\d+)/likes/?$} do
 	rescue Exception => e
 		halt 500, "Couldn't create like\n#{e}"
 	end
+	body "{}"
 	status 200
 end
 
@@ -172,6 +176,7 @@ post %r{^/posts/(\d+)/seens/?$} do
 	rescue Exception => e
 		halt 500, "Couldn't create seen\n#{e}"
 	end
+	body "{}"
 	status 200
 end
 
@@ -192,6 +197,8 @@ post %r{^/posts/(\d+)/comments/?$} do
 	comment.post = post
 	comment.creation_date = DateTime.now
 	halt 500, "Couldn't create the comment" unless comment.save
+	body "{}"
+	status 200
 end
 
 get %r{^/posts/(\d+)/comments/?$} do
@@ -222,7 +229,8 @@ get %r{^/posts/(\d+)/comments/?$} do
 			:creation_date => c.creation_date
 		}
 	end
-	result.to_json
+	body result.to_json
+	status 200
 end
 
 get %r{^/me/posts/?$} do
@@ -299,5 +307,6 @@ get %r{^/me/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 		}
 	end
-	result.to_json
+	body result.to_json
+	status 200
 end
