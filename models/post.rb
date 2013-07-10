@@ -12,15 +12,11 @@ class Post < ActiveRecord::Base
 
 	def self.tags_for_posts(posts)
 		posts_ids = posts_ids_for_posts(posts)
-		"beefore query"
-
 		tags_query_parameters = {
 			:joins => "LEFT JOIN posts ON posts.id = tags.post_id",
 			:select => "tags.text, tags.post_id",
 			:conditions => ["tags.post_id in (:posts_ids)", {:posts_ids => posts_ids}]
 		}
-
-		"after query"
 
 		Tag.find(:all, tags_query_parameters)
 	end

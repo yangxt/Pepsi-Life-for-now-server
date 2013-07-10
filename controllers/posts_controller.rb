@@ -149,7 +149,9 @@ post %r{^/posts/(\d+)/likes/?$} do
 	id = params[:captures][0]
 	begin
 		post = Post.find(id)
-		Like.where(:post_id => post.id, :application_user_id => @user.id).first_or_create
+		like = Like.where(:post_id => post.id, :application_user_id => @user.id).first
+		halt 403, "User can't like a post twice" if like
+		Like.create!(:post => post, :application_user => @user)
 	rescue ActiveRecord::RecordNotFound
 		halt 404
 	rescue Exception => e
@@ -162,7 +164,9 @@ post %r{^/posts/(\d+)/seens/?$} do
 	id = params[:captures][0]
 	begin
 		post = Post.find(id)
-		Seen.where(:post_id => post.id, :application_user_id => @user.id).first_or_create!
+		seen = Seen.where(:post_id => post.id, :application_user_id => @user.id).first
+		halt 403, "User can't like a post twice" if seen
+		Seen.create!(:post => post, :application_user => @user)
 	rescue ActiveRecord::RecordNotFound
 		halt 404
 	rescue Exception => e

@@ -179,7 +179,11 @@ class PostsControllerTest < Test::Unit::TestCase
 			request = TestTools.request
 			TestTools.authenticate(request, me)
 			response = TestTools.post(request, "/posts/#{post.id}/likes/", nil)
-			assert_equal(response.status, 200, "status code doesn't match")
+			if i == 0
+				assert_equal(response.status, 200, "status code doesn't match")
+			else
+				assert_equal(response.status, 403, "status code doesn't match")
+			end
 
 			assert_equal(post.likes.count, 1)
 			assert_equal(post.likes[0].application_user, me)
@@ -223,7 +227,11 @@ class PostsControllerTest < Test::Unit::TestCase
 			request = TestTools.request
 			TestTools.authenticate(request, me)
 			response = TestTools.post(request, "/posts/#{post.id}/seens/", nil)
-			assert_equal(response.status, 200, "status code doesn't match")
+			if i == 0
+				assert_equal(response.status, 200, "status code doesn't match")
+			else
+				assert_equal(response.status, 403, "status code doesn't match")
+			end
 
 			assert_equal(post.seens.count, 1)
 			assert_equal(post.seens[0].application_user, me)
