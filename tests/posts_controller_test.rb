@@ -23,11 +23,13 @@ class PostsControllerTest < Test::Unit::TestCase
 			"text" => "text1",
 			"image_url" => "url1",
 			"tags" => [
-
+				"tag1",
+				"tag2"
 			]
 		}
 		response = TestTools.post(request, '/posts/', body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		saved_posts = Post.all
 		assert_equal(saved_posts.length, 1, "number of posts added doesn't match")
@@ -66,9 +68,10 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+		json = json["body"]
+
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
 
@@ -112,9 +115,10 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/posts/?only_friends=true")
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 6, "number of posts doesn't match")
 		retrieved_posts.each do |p|
@@ -139,9 +143,10 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/posts/?tag=tag2")
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
 		retrieved_posts.each do |p|
@@ -157,7 +162,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/posts/#{post.id}/likes/", nil)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		assert_equal(post.likes.count, 1)
 		assert_equal(post.likes[0].application_user, me)
@@ -165,7 +171,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, user)
 		response = TestTools.post(request, "/posts/#{post.id}/likes/", nil)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		assert_equal(post.likes.count, 2)
 	end
@@ -179,10 +186,11 @@ class PostsControllerTest < Test::Unit::TestCase
 			request = TestTools.request
 			TestTools.authenticate(request, me)
 			response = TestTools.post(request, "/posts/#{post.id}/likes/", nil)
+			json = JSON.parse(response.body)
 			if i == 0
-				assert_equal(response.status, 200, "status code doesn't match")
+				assert_equal(json["status"], 200, "status code doesn't match")
 			else
-				assert_equal(response.status, 403, "status code doesn't match")
+				assert_equal(json["status"], 403, "status code doesn't match")
 			end
 
 			assert_equal(post.likes.count, 1)
@@ -195,7 +203,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/posts/5/likes/", nil)
-		assert_equal(response.status, 404, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 404, "status code doesn't match")
 	end
 
 	def test_post_seen
@@ -206,7 +215,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/posts/#{post.id}/seens/", nil)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		assert_equal(post.seens.count, 1)
 		assert_equal(post.seens[0].application_user, me)
@@ -214,7 +224,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, user)
 		response = TestTools.post(request, "/posts/#{post.id}/seens/", nil)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 		assert_equal(post.seens.count, 2)
 	end
 
@@ -227,10 +238,11 @@ class PostsControllerTest < Test::Unit::TestCase
 			request = TestTools.request
 			TestTools.authenticate(request, me)
 			response = TestTools.post(request, "/posts/#{post.id}/seens/", nil)
+			json = JSON.parse(response.body)
 			if i == 0
-				assert_equal(response.status, 200, "status code doesn't match")
+				assert_equal(json["status"], 200, "status code doesn't match")
 			else
-				assert_equal(response.status, 403, "status code doesn't match")
+				assert_equal(json["status"], 403, "status code doesn't match")
 			end
 
 			assert_equal(post.seens.count, 1)
@@ -243,7 +255,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/posts/5/seens/", nil)
-		assert_equal(response.status, 404, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 404, "status code doesn't match")
 	end
 
 	def test_post_comment
@@ -257,7 +270,8 @@ class PostsControllerTest < Test::Unit::TestCase
 			:text => "text0"
 		}
 		response = TestTools.post(request, "/posts/#{post.id}/comments/", body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 		comments = Comment.all
 		assert_equal(comments.length, 1, "number of comments doesn't match")
 		assert_equal(comments[0].text, body[:text], "text doesn't match")
@@ -270,7 +284,8 @@ class PostsControllerTest < Test::Unit::TestCase
 		TestTools.authenticate(request, me)
 
 		response = TestTools.post(request, "/posts/5/comments/", nil)
-		assert_equal(response.status, 404, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 404, "status code doesn't match")
 	end
 
 	def test_get_comments
@@ -288,9 +303,10 @@ class PostsControllerTest < Test::Unit::TestCase
 	 	request = TestTools.request
 	 	TestTools.authenticate(request, me)
 	 	response = TestTools.get(request, "/posts/#{post.id}/comments/?last_id=#{comments[Constants::COMMENTS_PER_PAGE - 1].id}")
-	 	assert_equal(response.status, 200, "status code doesn't match")
-
 	 	json = JSON.parse(response.body)
+	 	assert_equal(json["status"], 200, "status code doesn't match")
+
+	 	json = json["body"]
 
 	 	retrieved_comments = json["comments"]
 	 	assert_equal(retrieved_comments.length, 5)
@@ -323,9 +339,10 @@ class PostsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/me/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
 
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")

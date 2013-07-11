@@ -26,9 +26,10 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/me/friends/", body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 200, "status code doesn't match")
 
-		json = JSON.parse(response.body)
+		json = json["body"]
 		assert_equal(json["friend_url"], "me/friends/#{other_user.id}/")
 
 		friendships = Friendship.find(:all)
@@ -47,7 +48,8 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/me/friends/", body)
-		assert_equal(response.status, 400, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 400, "status code doesn't match")
 	end
 
 	def test_post_unexisting_user_as_friend
@@ -60,7 +62,8 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.post(request, "/me/friends/", body)
-		assert_equal(response.status, 404, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 404, "status code doesn't match")
 	end
 
 	def test_get_friends
@@ -99,9 +102,10 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/me/friends/")
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 200, "status code doesn't match")
 
-		json = JSON.parse(response.body)
+		json = json["body"]
 		retrieved_friends = json["friends"]
 
 		assert_equal(retrieved_friends.length, friends.length)
@@ -162,9 +166,10 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/me/friends/?from_lat=#{latitude_bounds[:min]}&to_lat=#{latitude_bounds[:max]}&from_long=#{longitude_bounds[:min]}&to_long=#{longitude_bounds[:max]}")
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 200, "status code doesn't match")
 
-		json = JSON.parse(response.body)
+		json = json["body"]
 		retrieved_friends = json["friends"]
 		assert_equal(friends_objects_in_bounds.length, retrieved_friends.length, "number of friends retrieved doesn't match")
 		retrieved_friends.each do |rf|
@@ -194,9 +199,10 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/me/friends/#{friend.id}/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 200, "status code doesn't match")
 
-		json = JSON.parse(response.body)
+		json = json["body"]
 
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
@@ -231,6 +237,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/me/friends/#{other_user.id}/posts/")
-		assert_equal(response.status, 404, "status code doesn't match")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 404, "status code doesn't match")
 	end
 end

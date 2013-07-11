@@ -33,11 +33,10 @@ post %r{^/users/?$} do
 	 			"username" => user.username,
 	 			"password" => user.password
 			}
-			body result.to_json
-			status 200
+			jsonp({:status => 200, :body => result})
 		end
 	rescue Exception=>e
-		halt 500, "The user couldn't be created\n#{e}"
+		haltJsonp 500, "The user couldn't be created\n#{e}"
 	end
 end
 
@@ -144,8 +143,7 @@ get %r{^/users/?$} do
 		end
 		result[:users] << user
 	end
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
 
 get %r{^/me/?$} do
@@ -156,33 +154,30 @@ get %r{^/me/?$} do
 		"seens_count" => @user.seens.count,
 		"likes_count" => @user.likes.count
 	}
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
 
 put %r{^/me/geolocation/?$} do
 	schema = Schemas.schemas[:users_geolocation_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
-	halt 400, is_valid[1] unless is_valid[0]
+	haltJsonp 400, is_valid[1] unless is_valid[0]
 
 	coordinate = Coordinate.where(:application_user_id => @user.id).first_or_create
 	coordinate.latitude = @json["coordinates"]["lat"]
 	coordinate.longitude = @json["coordinates"]["long"]
-	halt 500, "Couldn't create the location" unless coordinate.save
-	body "{}"
-	status 200
+	haltJsonp 500, "Couldn't create the location" unless coordinate.save
+	jsonp({:status => 200, :body => {}})
 end
 
 patch %r{^/me/?$} do
 	schema = Schemas.schemas[:users_PATCH]
 	is_valid = Tools.validate_against_schema(schema, @json)
-	halt 400, is_valid[1] unless is_valid[0]
+	haltJsonp 400, is_valid[1] unless is_valid[0]
 
 	@json.each do |k, e|
 		@user[k] = e
 	end
-	halt 500, "Couldn't patch the user" unless @user.save
-	body "{}"
-	status 200
+	haltJsonp 500, "Couldn't patch the user" unless @user.save
+	jsonp({:status => 200, :body => {}})
 end
 

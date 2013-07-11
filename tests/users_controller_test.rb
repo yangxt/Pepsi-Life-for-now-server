@@ -19,7 +19,8 @@ class UsersControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		response = TestTools.post(request, "/users/", nil)
 		json = JSON.parse(response.body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		assert_equal(json["status"], 200, "status code doesn't match")
+		json = json["body"]
 		assert_not_nil(json["username"], "username doesn't match")
 		assert_not_nil(json["password"], "password doesn't match")
 
@@ -44,7 +45,8 @@ class UsersControllerTest < Test::Unit::TestCase
 			}
 		}
 		response = TestTools.put(request, '/me/geolocation/', body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		coordinate = Coordinate.first
 		assert_equal(coordinate.application_user_id, user.id, "user doesn't match")
@@ -61,7 +63,8 @@ class UsersControllerTest < Test::Unit::TestCase
 			"image_url" => "new_image_url"
 		}
 		response = TestTools.patch(request, '/me/', body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		saved_user = ApplicationUser.first
 		assert_equal(saved_user, user, "user doesn't match")
@@ -77,7 +80,8 @@ class UsersControllerTest < Test::Unit::TestCase
 			"name" => "new_name"
 		}
 		response = TestTools.patch(request, '/me/', body)
-		assert_equal(response.status, 200)
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200)
 
 		saved_user = ApplicationUser.first
 		assert_equal(saved_user, user, "user doesn't match")
@@ -93,7 +97,8 @@ class UsersControllerTest < Test::Unit::TestCase
 			"image_url" => "new_image_url"
 		}
 		response = TestTools.patch(request, '/me/', body)
-		assert_equal(response.status, 200, "status code doesn't match")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
 		saved_user = ApplicationUser.first
 		assert_equal(saved_user, user, "user doesn't match")
@@ -128,9 +133,10 @@ class UsersControllerTest < Test::Unit::TestCase
 		TestTools.authenticate(request, me)
 
 		response = TestTools.get(request, '/me/')
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
 		assert_equal(json["id"], me.id, "id doesn't match")
 		assert_equal(json["username"], me.username, "username doesn't match")
 		assert_equal(json["name"], me.name, "name doesn't match")
@@ -163,9 +169,10 @@ class UsersControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/users/?last_id=#{users[Constants::USERS_PER_PAGE - 1].id}")
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
 		retrieved_users = json["users"]
 		assert_equal(retrieved_users.length, 7, "number of retrieved_users doesn't match")
 
@@ -217,9 +224,10 @@ class UsersControllerTest < Test::Unit::TestCase
 		request = TestTools.request
 		TestTools.authenticate(request, me)
 		response = TestTools.get(request, "/users/?from_lat=#{latitude_bounds[:min]}&to_lat=#{latitude_bounds[:max]}&from_long=#{longitude_bounds[:min]}&to_long=#{longitude_bounds[:max]}")
-		assert_equal(response.status, 200, "status code doesn't match")
-
 		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
 		retrieved_users = json["users"]
 		assert_equal(users_in_bounds.length, retrieved_users.length, "not the same number of users retrieved")
 		retrieved_users.each_index do |i|

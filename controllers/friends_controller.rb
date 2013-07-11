@@ -8,27 +8,26 @@ require './schemas/friends_POST'
 post %r{^/me/friends/?$} do
 	schema = Schemas.schemas[:friends_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
-	halt 400, is_valid[1] unless is_valid[0]
+	haltJsonp 400, is_valid[1] unless is_valid[0]
 
 	friend_id = @json["friend"].to_i
 	begin
 		friend = ApplicationUser.find(friend_id)
 	rescue ActiveRecord::RecordNotFound
-		halt 404
+		haltJsonp 404
 	end
 
-	halt 400, "You can't be your own friend" if friend == @user
+	haltJsonp 400, "You can't be your own friend" if friend == @user
 
 	friendship = Friendship.where(["(user1_id = :user and user2_id = :friend) or (user1_id = :friend and user2_id = :user)", {:user => @user.id, :friend => friend.id}]).first
 	if !friendship
-		halt 500, "Couldn't add the user as a friend" unless Friendship.create(:user1 => @user, :user2 => friend)
+		haltJsonp 500, "Couldn't add the user as a friend" unless Friendship.create(:user1 => @user, :user2 => friend)
 	end
 
 	result = {
 		"friend_url" => "me/friends/" + friend_id.to_s + "/"
 	}
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
 
 get %r{^/me/friends/?$} do
@@ -69,14 +68,13 @@ get %r{^/me/friends/?$} do
 		end
 		results[:friends] << friend
 	end
-	body results.to_json
-	status 200
+	jsonp({:status => 200, :body => results})
 end
 
 get %r{^/me/friends/(\d+)/posts/?$} do
 	friend_id = params[:captures][0]
 	friend = @user.friend_by_id(friend_id)
-	halt 404 unless friend
+	haltJsonp 404 unless friend
 
 	last_id = params[:last_id].to_i if params[:last_id] 
 
@@ -138,7 +136,6 @@ get %r{^/me/friends/(\d+)/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 		}
 	end
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
 

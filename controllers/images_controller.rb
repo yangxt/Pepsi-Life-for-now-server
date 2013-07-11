@@ -3,7 +3,7 @@ require 'sinatra/activerecord'
 require './helpers/constants'
 
 post %r{^/images/?$} do
-	halt 400, "Content must be in png format" unless request.content_type == "image/png"
+	haltJsonp 400, "Content must be in png format" unless request.content_type == "image/png"
 	identifier = Time.now.to_f.to_s
 	identifier.gsub!(".", "")
 	File.open(Constants::IMAGES_PATH + identifier, "w") do |f|
@@ -13,14 +13,13 @@ post %r{^/images/?$} do
 	result = {
 		"url" => "images/" + identifier
 	}
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
 
 get %r{^/images/(\d+)/?$} do
 	identifier = params[:captures][0]
 	path = Constants::IMAGES_PATH + identifier
-	halt 404 unless File.exist?(path)
+	haltJsonp 404 unless File.exist?(path)
 
 	file = File.open(path, "rb")
 	content = file.read

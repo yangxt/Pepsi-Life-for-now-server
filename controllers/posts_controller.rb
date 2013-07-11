@@ -1,5 +1,6 @@
 require 'sinatra'
 require 'sinatra/activerecord'
+require 'sinatra/jsonp'
 require './helpers/tools'
 require './helpers/constants'
 require './models/post'
@@ -14,7 +15,7 @@ require './schemas/comments_POST'
 post %r{^/posts/?$} do
 	schema = Schemas.schemas[:posts_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
-	halt 400, is_valid[1] unless is_valid[0]
+ 	haltJsonp(400, is_valid[1]) unless is_valid[0]
 
 	tags = @json["tags"]
 	@json.delete("tags")
@@ -35,11 +36,10 @@ post %r{^/posts/?$} do
 				end
 			end
 		end
-	rescue
-		halt 500, "Couldn't create the post\n" + $!.message 
+	rescue Exception => e
+		haltJsonp(500, "Couldn't create the post\n" + e.message)
 	end
-	body "{}"
-	status 200
+	jsonp({:status => 200, :body => {}})
 end
 
 get %r{^/posts/?$} do
@@ -144,8 +144,7 @@ get %r{^/posts/?$} do
 		}
 	end
 
-	body result.to_json
-	status 200
+	jsonp ({:status => 200, :body => result});
 end
 
 post %r{^/posts/(\d+)/likes/?$} do
@@ -153,15 +152,14 @@ post %r{^/posts/(\d+)/likes/?$} do
 	begin
 		post = Post.find(id)
 		like = Like.where(:post_id => post.id, :application_user_id => @user.id).first
-		halt 403, "User can't like a post twice" if like
+		haltJsonp 403, "User can't like a post twice" if like
 		Like.create!(:post => post, :application_user => @user)
 	rescue ActiveRecord::RecordNotFound
-		halt 404
+		haltJsonp 404
 	rescue Exception => e
-		halt 500, "Couldn't create like\n#{e}"
+		haltJsonp 500, "Couldn't create like\n#{e}"
 	end
-	body "{}"
-	status 200
+	jsonp ({:status => 200});
 end
 
 post %r{^/posts/(\d+)/seens/?$} do
@@ -169,15 +167,14 @@ post %r{^/posts/(\d+)/seens/?$} do
 	begin
 		post = Post.find(id)
 		seen = Seen.where(:post_id => post.id, :application_user_id => @user.id).first
-		halt 403, "User can't like a post twice" if seen
+		haltJsonp 403, "User can't like a post twice" if seen
 		Seen.create!(:post => post, :application_user => @user)
 	rescue ActiveRecord::RecordNotFound
-		halt 404
+		haltJsonp 404
 	rescue Exception => e
-		halt 500, "Couldn't create seen\n#{e}"
+		haltJsonp 500, "Couldn't create seen\n#{e}"
 	end
-	body "{}"
-	status 200
+	jsonp({:status => 200, :body => {}})
 end
 
 post %r{^/posts/(\d+)/comments/?$} do
@@ -185,20 +182,19 @@ post %r{^/posts/(\d+)/comments/?$} do
 	begin
 		post = Post.find(post_id)
 	rescue ActiveRecord::RecordNotFound
-		halt 404
+		haltJsonp 404
 	end
 	schema = Schemas.schemas[:comments_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
-	halt 400, is_valid[1] unless is_valid[0]
+	haltJsonp 400, is_valid[1] unless is_valid[0]
 
 	comment = Comment.new
 	comment.text = @json["text"]
 	comment.application_user = @user
 	comment.post = post
 	comment.creation_date = DateTime.now
-	halt 500, "Couldn't create the comment" unless comment.save
-	body "{}"
-	status 200
+	haltJsonp 500, "Couldn't create the comment" unless comment.save
+	jsonp({:status => 200, :body => {}})
 end
 
 get %r{^/posts/(\d+)/comments/?$} do
@@ -208,7 +204,7 @@ get %r{^/posts/(\d+)/comments/?$} do
 	begin
 		post = Post.find(post_id)
 	rescue ActiveRecord::RecordNotFound
-		halt 404
+		haltJsonp 404
 	end
 
 	result = {:comments => []}
@@ -229,8 +225,7 @@ get %r{^/posts/(\d+)/comments/?$} do
 			:creation_date => c.creation_date
 		}
 	end
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
 
 get %r{^/me/posts/?$} do
@@ -307,6 +302,5 @@ get %r{^/me/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 		}
 	end
-	body result.to_json
-	status 200
+	jsonp({:status => 200, :body => result})
 end
