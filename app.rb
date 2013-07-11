@@ -34,17 +34,10 @@ before do
 		query_string = env["QUERY_STRING"]
 		method = query_string.scan(/&?method=(\w+)&?/).flatten
 		if method.length != 0
-			query_string.sub!(/&method=\w+&/, '&jsonpRequest=true&')
-			query_string.sub!(/method=\w+&/, 'jsonpRequest=true&')
-			query_string.sub!(/method=\w+/, 'jsonpRequest=true')
 			env["QUERY_STRING"] = query_string
 			env["REQUEST_METHOD"] = method[0]
-			status, headers, body = call env
-			[status, headers, body.map(&:upcase)]
 		else
-			if !query_string.match(/jsonpRequest=true/)
-				haltJsonp(400, "Invalid request. Add method to url")
-			end
+			haltJsonp(400, "Invalid request. Add method to url")
 	  	end
   	end
 end
