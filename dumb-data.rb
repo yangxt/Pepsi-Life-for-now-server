@@ -1,3 +1,4 @@
+ # -*- coding: utf-8 -*-
 require ('./tests/test_tools')
 
 TestTools.delete_all

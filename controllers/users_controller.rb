@@ -1,3 +1,4 @@
+ # -*- coding: utf-8 -*-
 require 'sinatra'
 require 'sinatra/activerecord'
 require './models/application_user'

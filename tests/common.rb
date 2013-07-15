@@ -1,3 +1,4 @@
+ # -*- coding: utf-8 -*-
 ENV['RACK_ENV'] = 'test'
 require './app'
 require 'test/unit'
