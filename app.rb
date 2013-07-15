@@ -32,18 +32,18 @@ configure do
 	ActiveRecord::Base.default_timezone = :utc
 end
 
-before do
-	if ENV['RACK_ENV'] != 'test'
-		query_string = env["QUERY_STRING"]
-		method = query_string.scan(/&?method=(\w+)&?/).flatten
-		if method.length != 0
-			env["QUERY_STRING"] = query_string
-			env["REQUEST_METHOD"] = method[0]
-		else
-			haltJsonp(400, "Invalid request. Add method to url")
-	  	end
-  	end
-end
+# before do
+# 	if ENV['RACK_ENV'] != 'test'
+# 		query_string = env["QUERY_STRING"]
+# 		method = query_string.scan(/&?method=(\w+)&?/).flatten
+# 		if method.length != 0
+# 			env["QUERY_STRING"] = query_string
+# 			env["REQUEST_METHOD"] = method[0]
+# 		else
+# 			haltJsonp(400, "Invalid request. Add method to url")
+# 	  	end
+#   	end
+# end
 
 before do
 	unless request.path =~ (%r{^/users/?}) &&
