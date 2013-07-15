@@ -4,6 +4,7 @@ require 'sinatra'
 require 'sinatra/reloader' if development?
 require 'sinatra/activerecord'
 require 'sinatra/jsonp'
+require 'sinatra/cross_origin'
 require './config/environments' #database configuration
 require 'json'
 require './helpers/authentication'
@@ -25,6 +26,7 @@ helpers do
 end
 
 configure do
+	enable :cross_origin
 	mime_type :json, "application/json"
 	mime_type :png, "image/png"
 	ActiveRecord::Base.default_timezone = :utc
