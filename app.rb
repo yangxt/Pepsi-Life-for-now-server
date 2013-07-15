@@ -39,6 +39,7 @@ before do
 		if method.length != 0
 			env["QUERY_STRING"] = query_string
 			env["REQUEST_METHOD"] = method[0]
+		end
   	end
 end
 
