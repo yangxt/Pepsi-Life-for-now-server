@@ -2,7 +2,7 @@
 require ('./tests/test_tools')
 
 TestTools.delete_all
-
+me = TestTools.create_user_with("testuser", "testuser", "testuser", "...", "...")
 user1 = TestTools.create_user_with("claude", "claude", "Claude Simons", "...", "J'adore Pepsi")
 user2 = TestTools.create_user_with("marion", "marion", "Marion", "...", "Une petite bouteille de Pepsi?")
 user3 = TestTools.create_user_with("jeremy", "jeremy", "Jeremy", "...", "Quel bel été")
