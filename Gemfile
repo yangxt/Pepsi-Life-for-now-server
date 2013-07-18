@@ -10,3 +10,4 @@ gem "sinatra-jsonp"
 gem "json-schema"
 gem "rack-test"
 gem "sinatra-cross_origin"
+gem 'aws-sdk', '~> 1.12.0'

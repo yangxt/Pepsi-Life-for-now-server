@@ -17,8 +17,9 @@ require './controllers/images_controller'
 
 API_KEY = "nd6YyykHsCygZZi64F"
 
-Dir.mkdir(Constants::DATA_PATH) unless File.exists?(Constants::DATA_PATH)
-Dir.mkdir(Constants::IMAGES_PATH) unless File.exists?(Constants::IMAGES_PATH)
+if Rack::Utils.respond_to?("key_space_limit=")
+  	Rack::Utils.key_space_limit = 400000 
+end
 
 helpers do
 	include Sinatra::Authentication
