@@ -11,6 +11,14 @@ user5 = TestTools.create_user_with("jonathan", "jonathan", "Jonathan", "...", "T
 user6 = TestTools.create_user_with("francois", "francois", "François", "...", "C'est la fête!")
 
 ##################
+#Friends
+##################
+
+TestTools.create_friendship(me, user1);
+TestTools.create_friendship(me, user3);
+TestTools.create_friendship(me, user5);
+
+##################
 #user1
 ##################
 user1_post1 = TestTools.create_post_with("Recent advances will help victims of the attack who underwent amputations", "...", DateTime.new(2013,6,1,4,5,6,'+2'), user1)
@@ -36,8 +44,6 @@ TestTools.create_tag_with(user1_post3, "#sport")
 TestTools.create_tag_with(user1_post3, "#people")
 TestTools.create_tag_with(user1_post4, "#science")
 
-TestTools
-
 ##################
 #user2
 ##################
@@ -57,7 +63,7 @@ TestTools.create_tag_with(user2_post1, "#pepsi")
 #user3
 ##################
 user3_post1 = TestTools.create_post_with("Three women held captive in a Cleveland home for a decade issued a YouTube video Monday night in which they thanked the public for the encouragement and financial support that is allowing them to restart their lives.", "...", DateTime.new(2013,7,1,3,7,6,'+4'), user3)
-user1_post2 = TestTools.create_post_with("The findings on sleep patterns and brain power come from a UK study of more than 11,000 seven-year-olds. Youngsters who had no regular bedtime or who went to bed later than 21:00 had lower scores for reading and maths.", "...", DateTime.new(2013,7,2,16,34,11,'+1'), user1)
+user3_post2 = TestTools.create_post_with("The findings on sleep patterns and brain power come from a UK study of more than 11,000 seven-year-olds. Youngsters who had no regular bedtime or who went to bed later than 21:00 had lower scores for reading and maths.", "...", DateTime.new(2013,7,2,16,34,11,'+1'), user1)
 
 #likes
 TestTools.create_like_on_post_with_user(user3_post1, user1)
@@ -67,6 +73,7 @@ TestTools.create_like_on_post_with_user(user3_post1, user2)
 #tags
 TestTools.create_tag_with(user3_post1, "#world")
 TestTools.create_tag_with(user1_post2, "#science")
+
 
 ##################
 #user4
@@ -90,3 +97,19 @@ TestTools.create_like_on_post_with_user(user5_post1, user2)
 #tags
 TestTools.create_tag_with(user5_post1, "#technology")
 TestTools.create_tag_with(user5_post2, "#people")
+
+
+##################
+#comments
+##################
+
+TestTools.create_comment_with(user2_post1, user1, "Bien raison", DateTime.new(2013,6,23,4,5,6,'+2'))
+TestTools.create_comment_with(user3_post2, user1, "What a great study", DateTime.new(2013,7,3,6,8,6,'+1'))
+
+TestTools.create_comment_with(user1_post1, user2, "Love this!", DateTime.new(2013,7,5,4,5,6,'+2'))
+TestTools.create_comment_with(user1_post3, user2, "That's sad :(", DateTime.new(2013,6,10,6,8,6,'+1'))
+
+TestTools.create_comment_with(user1_post2, user3, "Damn economy", DateTime.new(2013,7,5,4,5,6,'+2'))
+
+TestTools.create_comment_with(user5_post1, user4, "Clooney's so cute", DateTime.new(2013,7,15,4,5,6,'+2'))
+
