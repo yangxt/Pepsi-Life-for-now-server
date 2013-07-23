@@ -133,11 +133,21 @@ get %r{^/posts/?$} do
 	end
 
 	################################################
+	#Get the owners of the retrieved posts
+
+	friends = @user.friends
+
+	users = Post.users_for_posts(posts)
+	users.each do |u|
+		full_post = full_posts[posts_ids.index(u.post_id.to_i)]
+		full_post[:friend] = friends.include?(u)
+	end
+
+	################################################
 	#Build the response
 
 	result = {:posts => []}
-
-	full_posts.each do |f|
+	full_posts.each_with_index do |f, index|
 		array = result[:posts]
 		array << {
 			:id => f[:post].id,
@@ -150,7 +160,8 @@ get %r{^/posts/?$} do
 			:comments_count => f[:comments_count].to_i,
 			:owner => {
 				:name => f[:post].user_name,
-				:image_url => f[:post].user_image_url
+				:image_url => f[:post].user_image_url,
+				:friend => f[:friend]
 			}
 		}
 	end
@@ -224,16 +235,39 @@ get %r{^/posts/(\d+)/comments/?$} do
 	else
 		comments = post.comments.order("comments.id DESC").limit(Constants::COMMENTS_PER_PAGE)
 	end
+
+	full_comments = []
+	comments_ids = []
 	comments.each do |c|
+		full_comments << {
+			:comment => c
+		}
+		comments_ids << c.id
+	end
+
+	################################################
+	#Get the owners of the retrieved comments
+
+	friends = @user.friends
+
+	users = Comment.users_for_comments(comments)
+	users.each do |u|
+		full_comment = full_comments[comments_ids.index(u.comment_id.to_i)]
+		full_comment[:friend] = friends.include?(u)
+	end
+
+
+	full_comments.each do |f|
 		array = result[:comments]
 		array << {
-			:id => c.id,
-			:text => c.text,
+			:id => f[:comment].id,
+			:text => f[:comment].text,
 			:owner => {
-				:name => c.application_user.name,
-				:image_url => c.application_user.image_url
+				:name => f[:comment].application_user.name,
+				:image_url => f[:comment].application_user.image_url,
+				:friend => f[:friend]
 			},
-			:creation_date => c.creation_date
+			:creation_date => f[:comment].creation_date
 		}
 	end
 	jsonp({:status => 200, :body => result})

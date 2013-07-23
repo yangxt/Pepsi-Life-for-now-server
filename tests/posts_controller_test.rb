@@ -51,6 +51,7 @@ class PostsControllerTest < Test::Unit::TestCase
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		users = TestTools.create_x_users(Constants::POSTS_PER_PAGE + 5)
 		posts = []
+		friend = [];
 		users.each_with_index do |u, i|
 			post = TestTools.create_post_with("text1", "image_url1", DateTime.now + i.days, u)
 			if i < Constants::POSTS_PER_PAGE + 3
@@ -59,8 +60,14 @@ class PostsControllerTest < Test::Unit::TestCase
 				TestTools.create_seen_on_post_with_user(post, u)
 				TestTools.create_like_on_post_with_user(post, me)
 				TestTools.create_comment_with_post_and_user(post, u)
-				if (i > 5)
+				if i > 5
 					TestTools.create_comment_with_post_and_user(post, users[i - 1])
+				end
+				if i % 2 == 0
+					TestTools.create_friendship(me, users[i])
+					friend << true
+				else
+					friend << false
 				end
 			end
 			posts << post
@@ -91,6 +98,7 @@ class PostsControllerTest < Test::Unit::TestCase
 			assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 			assert_equal(retrieved_post["owner"]["name"], real_post.application_user.name, "post's owner's name doesn't match")
 			assert_equal(retrieved_post["owner"]["image_url"], real_post.application_user.image_url, "post's owner's image_url doesn't match")
+			assert_equal(retrieved_post["owner"]["friend"], friend[i], "post's friend doesn't match")
 
 			retrieved_tags = retrieved_post["tags"]
 			if retrieved_tags
@@ -297,11 +305,18 @@ class PostsControllerTest < Test::Unit::TestCase
 	 	me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 	 	users = TestTools.create_x_users(Constants::COMMENTS_PER_PAGE + 5)
 	 	post = TestTools.create_post_with_user(users[0])
+	 	friend = []
 	 	fake_post = TestTools.create_post_with_user(me)
 	 	TestTools.create_x_comments_with_post_and_user(fake_post, me, 3)
 	 	comments = []
 	 	users.each_index do |i|
 	 		comments << (TestTools.create_comment_with(post, users[i], "text#{i}", DateTime.now + i.days))
+	 		if i % 2 == 0
+	 			TestTools.create_friendship(me, users[i])
+	 			friend << true
+	 		else
+	 			friend << false
+	 		end
 	 	end
 	 	comments.reverse!
 
@@ -323,6 +338,8 @@ class PostsControllerTest < Test::Unit::TestCase
 	 		assert_equal(DateTime.parse(retrieved_comment["creation_date"].to_s), real_comment.creation_date.to_s, "creation_date doesn't match")
 	 		assert_equal(retrieved_comment["owner"]["name"], real_comment.application_user.name, "owner's name doesn't match")
 	 		assert_equal(retrieved_comment["owner"]["image_url"], real_comment.application_user.image_url, "owner's image_url doesn't match")
+	 		assert_equal(retrieved_comment["owner"]["friend"], friend[i], "comment's friend doesn't match")
+
 	 	end
 	end
 

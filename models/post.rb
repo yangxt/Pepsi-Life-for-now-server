@@ -60,6 +60,19 @@ class Post < ActiveRecord::Base
 		comments_counts = Comment.find(:all, comments_query_parameters)
 	end
 
+	def self.users_for_posts(posts)
+		posts_ids = posts_ids_for_posts(posts)
+
+		users_query_parameters = {
+	       	:joins => "LEFT JOIN posts ON posts.application_user_id = application_users.id",
+	       	:select => "application_users.id, posts.id as post_id",
+	        :order => "posts.id DESC",
+	        :conditions => ["posts.id in (:posts_ids)", {:posts_ids => posts_ids}]
+		}
+
+		users = ApplicationUser.find(:all, users_query_parameters);
+	end
+
 	private
 	def self.posts_ids_for_posts(posts)
 		posts_ids = []
