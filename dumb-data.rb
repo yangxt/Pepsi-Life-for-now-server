@@ -25,7 +25,7 @@ user1_post1 = TestTools.create_post_with("Recent advances will help victims of t
 user1_post2 = TestTools.create_post_with("With Greece’s economy in free-fall, many children are arriving at school hungry, underfed or malnourished.", "http://fc02.deviantart.net/fs70/f/2010/230/d/7/Nature_portrait__by_laminimouse.jpg", DateTime.new(2013,6,3,6,8,6,'+1'), user1)
 user1_post3 = TestTools.create_post_with("After Dwight Howard signed with the Houston Rockets on Friday, Kobe Bryant issued a passive-aggressive response, posting a picture of himself and Pau Gasol on Instagram.", "http://us.123rf.com/400wm/400/400/flaps/flaps1002/flaps100200021/6535325-white-horse-portrait-in-the-nature.jpg", DateTime.new(2013,6,7,11,8,6,'+1'), user1)
 user1_post4 = TestTools.create_post_with("People in northern China may be dying five years sooner than expected because of diseases caused by air pollution, an unintended result of a decades-old policy providing free coal for heat, a study found.", "http://greatkidpix.com/images/bella-baby-photo-kidpix.jpg", DateTime.new(2013,6,9,3,4,6,'-1'), user1)
-user1_post5 = TestTools.create_post_with("Analysis of ice cores obtained from the basin of Lake Vostok, the subglacial lake that Russian scientists drilled down to in 2012, have revealed DNA from an estimated 3,507 organisms.", "http://www.ludimaginary.net/img/paysages/si-naturellement-artificiel-photographie-nature.jpg", DateTime.new(2013,6,15,17,34,6,'+1'), user1)
+user1_post5 = TestTools.create_post_with("Analysis of ice cores obtained from the basin of Lake Vostok, the subglacial lake that Russian scientists drilled down to in 2012, have revealed DNA from an estimated 3,507 organisms.", "http://miriadna.com/desctopwalls/images/max/Ideal-landscape.jpg", DateTime.new(2013,6,15,17,34,6,'+1'), user1)
 
 #likes
 TestTools.create_like_on_post_with_user(user1_post1, user1)
@@ -47,7 +47,7 @@ TestTools.create_tag_with(user1_post4, "#science")
 ##################
 #user2
 ##################
-user2_post1 = TestTools.create_post_with("Pepsi, c'est trop bon", "http://www.thebraiser.com/wp-content/uploads/2012/11/pepsi.jpg", DateTime.new(2013,6,19,3,5,7,'-6'), user2)
+user2_post1 = TestTools.create_post_with("Pepsi, c'est trop bon", "http://francisanderson.files.wordpress.com/2008/10/pepsi-2.png", DateTime.new(2013,6,19,3,5,7,'-6'), user2)
 user2_post2 = TestTools.create_post_with("Vacances en Egypte", "http://blogimgs.only-apartments.com/images/only-apartments/1430/nefertiti-berlin.jpg", DateTime.new(2013,6,26,5,8,6,'+1'), user2)
 user2_post3 = TestTools.create_post_with("The Times’s Susan Dominus talks to the organizational psychologist Adamrs, takers and succeeding in the workplace.", "http://www.betterphoto.com/uploads/processed/0844/0811011449481portraito.jpg", DateTime.new(2013,6,29,6,3,6,'+3'), user2)
 
@@ -78,7 +78,7 @@ TestTools.create_tag_with(user1_post2, "#science")
 ##################
 #user4
 ##################
-user4_post1 = TestTools.create_post_with("A day after the release of iOS 7 beta 3, the second version for the iPhone and the third for the iPad, the same pattern which emerged with beta 1 and 2 is continuing: thus far iOS 7 is more stable and less glitch prone on the iPhone 5 than it is on the older...", "http://media.idownloadblog.com/wp-content/uploads/2012/09/iPhone-5-black-portrait-EarBuds.jpg", DateTime.new(2013,7,3,2,1,6,'+8'), user4)
+user4_post1 = TestTools.create_post_with("A day after the release of iOS 7 beta 3, the second version for the iPhone and the third for the iPad, the same pattern which emerged with beta 1 and 2 is continuing: thus far iOS 7 is more stable and less glitch prone on the iPhone 5 than it is on the older...", "http://iphone5freegiveaway.com/wp-content/uploads/2013/03/iphone5prev.jpg", DateTime.new(2013,7,3,2,1,6,'+8'), user4)
 
 #tags
 TestTools.create_tag_with(user4_post1, "#technology")
