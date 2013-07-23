@@ -5,8 +5,8 @@
 # configure :production, :development, :test do
 # 	db = YAML.load_file('./config/database.yml')[ENV['RACK_ENV'] || 'development']
 # 	ActiveRecord::Base.establish_connection(
-# 			:adapter => db['adapter'] == 'postgres' ? 'postgresql' : db['adapter'],
-# 			:host#     => db['host'],
+# 			:adapter  => db['adapter'] == 'postgres' ? 'postgresql' : db['adapter'],
+# 			:host     => db['host'],
 # 			:username => db['username'],
 # 			:password => db['password'],
 # 			:database => db['database'],
