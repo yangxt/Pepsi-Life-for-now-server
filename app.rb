@@ -51,7 +51,7 @@ before do
 	end
 	if !(api_key = params[:api_key]) || 
 		api_key != API_KEY
-		halt 403, "You must add a valid API key to every request"
+		haltJsonp 403, "You must add a valid API key to every request"
 	end
 	if (request.content_type == "application/json" &&
 		(body = request.body.read) != "")
@@ -59,12 +59,12 @@ before do
 			json = JSON.parse(body)
 			@json = json;
 		rescue JSON::ParserError => e
-			halt 400, "Invalid JSON: \n" + e.message
+			haltJsonp 400, "Invalid JSON: \n" + e.message
 		end
 	end
 	content_type :json
 end
 
 not_found do
-	"Non-existing resource"
+	jsonp({:status => 404, :message => "Non-existing resource"})
 end
