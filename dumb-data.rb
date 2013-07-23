@@ -44,6 +44,9 @@ TestTools.create_tag_with(user1_post3, "#sport")
 TestTools.create_tag_with(user1_post3, "#people")
 TestTools.create_tag_with(user1_post4, "#science")
 
+#seens
+TestTools.create_seen_on_post_with_user(user1_post1, user1);
+
 ##################
 #user2
 ##################
@@ -58,6 +61,10 @@ TestTools.create_like_on_post_with_user(user1_post2, user2)
 
 #tags
 TestTools.create_tag_with(user2_post1, "#pepsi")
+
+#seens
+TestTools.create_seen_on_post_with_user(user1_post1, user2);
+TestTools.create_seen_on_post_with_user(user1_post2, user2);
 
 ##################
 #user3
@@ -74,6 +81,9 @@ TestTools.create_like_on_post_with_user(user3_post1, user2)
 TestTools.create_tag_with(user3_post1, "#world")
 TestTools.create_tag_with(user1_post2, "#science")
 
+#seens
+TestTools.create_seen_on_post_with_user(user2_post2, user3);
+
 
 ##################
 #user4
@@ -82,6 +92,10 @@ user4_post1 = TestTools.create_post_with("A day after the release of iOS 7 beta 
 
 #tags
 TestTools.create_tag_with(user4_post1, "#technology")
+
+#seens
+TestTools.create_seen_on_post_with_user(user3_post1, user4);
+TestTools.create_seen_on_post_with_user(user3_post2, user4);
 
 ##################
 #user5
