@@ -58,6 +58,10 @@ class PostsControllerTest < Test::Unit::TestCase
 				TestTools.create_like_on_post_with_user(post, u)
 				TestTools.create_seen_on_post_with_user(post, u)
 				TestTools.create_like_on_post_with_user(post, me)
+				TestTools.create_comment_with_post_and_user(post, u)
+				if (i > 5)
+					TestTools.create_comment_with_post_and_user(post, users[i - 1])
+				end
 			end
 			posts << post
 		end
@@ -84,6 +88,7 @@ class PostsControllerTest < Test::Unit::TestCase
 			assert_equal(DateTime.parse(retrieved_post["creation_date"].to_s), real_post.creation_date.to_s, "creation_date doesn't match")
 			assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes_count doesn't match")
 			assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
+			assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 			assert_equal(retrieved_post["owner"]["name"], real_post.application_user.name, "post's owner's name doesn't match")
 			assert_equal(retrieved_post["owner"]["image_url"], real_post.application_user.image_url, "post's owner's image_url doesn't match")
 
@@ -331,6 +336,7 @@ class PostsControllerTest < Test::Unit::TestCase
 				TestTools.create_like_on_post_with_user(posts[i], user)
 				TestTools.create_seen_on_post_with_user(posts[i], user)
 				TestTools.create_seen_on_post_with_user(posts[i], me)
+				TestTools.create_comment_with_post_and_user(posts[i], user)
 			end
 		end
 		posts.reverse!
@@ -355,6 +361,7 @@ class PostsControllerTest < Test::Unit::TestCase
 	  		assert_equal(DateTime.parse(retrieved_post["creation_date"].to_s), real_post.creation_date.to_s, "creation_date doesn't match")
 	  		assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes count doesn't match")
 	  		assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
+	  		assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 	  		
 	  		retrieved_tags = retrieved_post["tags"]
 	  		if retrieved_tags

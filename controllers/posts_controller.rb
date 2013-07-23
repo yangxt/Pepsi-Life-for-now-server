@@ -124,6 +124,15 @@ get %r{^/posts/?$} do
 	end
 
 	################################################
+	#Get the comments count of the retrieved posts
+
+	comments_count = Post.comments_counts_for_posts(posts)
+	comments_count.each do |s|
+		full_post = full_posts[posts_ids.index(s.post_id)]
+		full_post[:comments_count] = s.count
+	end
+
+	################################################
 	#Build the response
 
 	result = {:posts => []}
@@ -138,6 +147,7 @@ get %r{^/posts/?$} do
 			:creation_date => f[:post].creation_date,
 			:likes_count => f[:likes_count].to_i,
 			:seens_count => f[:seens_count].to_i,
+			:comments_count => f[:comments_count].to_i,
 			:owner => {
 				:name => f[:post].user_name,
 				:image_url => f[:post].user_image_url
@@ -287,6 +297,15 @@ get %r{^/me/posts/?$} do
 	end
 
 	################################################
+	#Get the comments count of the retrieved posts
+
+	comments_count = Post.comments_counts_for_posts(posts)
+	comments_count.each do |s|
+		full_post = full_posts[posts_ids.index(s.post_id)]
+		full_post[:comments_count] = s.count
+	end
+
+	################################################
 	#Build the response
 
 	result = {:posts => []}
@@ -301,6 +320,7 @@ get %r{^/me/posts/?$} do
 			:creation_date => f[:post].creation_date,
 			:likes_count => f[:likes_count].to_i,
 			:seens_count => f[:seens_count].to_i,
+			:comments_count => f[:comments_count].to_i
 		}
 	end
 	jsonp({:status => 200, :body => result})

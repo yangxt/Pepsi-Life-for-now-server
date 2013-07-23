@@ -192,6 +192,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 				TestTools.create_like_on_post_with_user(posts[i], other_user)
 				TestTools.create_seen_on_post_with_user(posts[i], friend)
 				TestTools.create_seen_on_post_with_user(posts[i], me)
+				TestTools.create_comment_with_post_and_user(posts[i], friend)
 			end
 		end
 		posts.reverse!
@@ -215,6 +216,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 	  		assert_equal(DateTime.parse(retrieved_post["creation_date"].to_s), real_post.creation_date.to_s, "creation_date doesn't match")
 	  		assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes count doesn't match")
 	  		assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
+	  		assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 	  		
 	  		retrieved_tags = retrieved_post["tags"]
 	  		if retrieved_tags

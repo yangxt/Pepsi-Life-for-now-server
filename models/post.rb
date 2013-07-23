@@ -47,6 +47,19 @@ class Post < ActiveRecord::Base
 		seens_counts = Seen.find(:all, seens_query_parameters)
 	end
 
+	def self.comments_counts_for_posts(posts)
+		posts_ids = posts_ids_for_posts(posts)
+
+		comments_query_parameters = {
+			:joins => "LEFT JOIN posts ON posts.id = comments.post_id",
+			:select => "count(comments.application_user_id) as count, comments.post_id",
+			:group => "comments.post_id",
+			:conditions => ["comments.post_id in (:posts_ids)", {:posts_ids => posts_ids}]
+		}
+
+		comments_counts = Comment.find(:all, comments_query_parameters)
+	end
+
 	private
 	def self.posts_ids_for_posts(posts)
 		posts_ids = []
