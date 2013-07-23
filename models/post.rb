@@ -73,6 +73,30 @@ class Post < ActiveRecord::Base
 		users = ApplicationUser.find(:all, users_query_parameters);
 	end
 
+	def self.seen_posts_for_user(user)
+		posts_query_parameters = {
+	       	:joins => "INNER JOIN seens ON posts.id = seens.post_id",
+	       	:select => "posts.id",
+	        :order => "posts.id DESC",
+	        :group => "posts.id",
+	        :conditions => ["seens.application_user_id = :user_id", {:user_id => user.id}]
+		}
+
+		posts = Post.find(:all, posts_query_parameters);
+	end
+
+	def self.liked_posts_for_user(user)
+		posts_query_parameters = {
+	       	:joins => "INNER JOIN likes ON posts.id = likes.post_id",
+	       	:select => "posts.id",
+	        :order => "posts.id DESC",
+	        :group => "posts.id",
+	        :conditions => ["likes.application_user_id = :user_id", {:user_id => user.id}]
+		}
+
+		posts = Post.find(:all, posts_query_parameters);
+	end
+
 	private
 	def self.posts_ids_for_posts(posts)
 		posts_ids = []

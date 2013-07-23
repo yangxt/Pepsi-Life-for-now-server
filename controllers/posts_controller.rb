@@ -144,6 +144,30 @@ get %r{^/posts/?$} do
 	end
 
 	################################################
+	#Get seens posts
+
+	posts = Post.seen_posts_for_user(@user)
+	full_posts.each do |f|
+		if (posts.include?(f[:post]))
+			f[:seen] = true
+		else
+			f[:seen] = false
+		end
+	end
+
+	################################################
+	#Get liked posts
+
+	posts = Post.liked_posts_for_user(@user)
+	full_posts.each do |f|
+		if (posts.include?(f[:post]))
+			f[:liked] = true
+		else
+			f[:liked] = false
+		end
+	end
+
+	################################################
 	#Build the response
 
 	result = {:posts => []}
@@ -162,7 +186,9 @@ get %r{^/posts/?$} do
 				:name => f[:post].user_name,
 				:image_url => f[:post].user_image_url,
 				:friend => f[:friend]
-			}
+			},
+			:seen => f[:seen],
+			:liked => f[:liked]
 		}
 	end
 
@@ -340,6 +366,30 @@ get %r{^/me/posts/?$} do
 	end
 
 	################################################
+	#Get seens posts
+
+	posts = Post.seen_posts_for_user(@user)
+	full_posts.each do |f|
+		if (posts.include?(f[:post]))
+			f[:seen] = true
+		else
+			f[:seen] = false
+		end
+	end
+
+	################################################
+	#Get liked posts
+
+	posts = Post.liked_posts_for_user(@user)
+	full_posts.each do |f|
+		if (posts.include?(f[:post]))
+			f[:liked] = true
+		else
+			f[:liked] = false
+		end
+	end
+
+	################################################
 	#Build the response
 
 	result = {:posts => []}
@@ -354,7 +404,9 @@ get %r{^/me/posts/?$} do
 			:creation_date => f[:post].creation_date,
 			:likes_count => f[:likes_count].to_i,
 			:seens_count => f[:seens_count].to_i,
-			:comments_count => f[:comments_count].to_i
+			:comments_count => f[:comments_count].to_i,
+			:liked => f[:liked],
+			:seen => f[:seen]
 		}
 	end
 	jsonp({:status => 200, :body => result})

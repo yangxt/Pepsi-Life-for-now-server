@@ -184,6 +184,8 @@ class FriendsControllerTest < Test::Unit::TestCase
 		other_user = TestTools.create_user
 		TestTools.create_friendship(other_user, me)
 		TestTools.create_x_posts_with_user(other_user, 5)
+		liked = []
+		seen = []
 
 		posts = TestTools.create_x_posts_with_user(friend, Constants::POSTS_PER_PAGE + 5)
 		for i in 0...posts.length
@@ -194,8 +196,19 @@ class FriendsControllerTest < Test::Unit::TestCase
 				TestTools.create_seen_on_post_with_user(posts[i], me)
 				TestTools.create_comment_with_post_and_user(posts[i], friend)
 			end
+			if i > Constants::POSTS_PER_PAGE + 1
+				TestTools.create_like_on_post_with_user(posts[i], me)
+				liked << true
+				seen << false
+			else
+				TestTools.create_seen_on_post_with_user(posts[i], me)
+				liked << false
+				seen << true
+			end
 		end
 		posts.reverse!
+		liked.reverse!
+		seen.reverse!
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)
@@ -217,6 +230,8 @@ class FriendsControllerTest < Test::Unit::TestCase
 	  		assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes count doesn't match")
 	  		assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
 	  		assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
+	  		assert_equal(retrieved_post["seen"], seen[i + Constants::POSTS_PER_PAGE], "seen doesn't match")
+	  		assert_equal(retrieved_post["liked"], liked[i + Constants::POSTS_PER_PAGE], "liked doesn't match")
 	  		
 	  		retrieved_tags = retrieved_post["tags"]
 	  		if retrieved_tags

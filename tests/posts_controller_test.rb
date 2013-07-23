@@ -51,28 +51,36 @@ class PostsControllerTest < Test::Unit::TestCase
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		users = TestTools.create_x_users(Constants::POSTS_PER_PAGE + 5)
 		posts = []
-		friend = [];
+		friend = []
+		liked = []
+		seen = []
 		users.each_with_index do |u, i|
 			post = TestTools.create_post_with("text1", "image_url1", DateTime.now + i.days, u)
 			if i < Constants::POSTS_PER_PAGE + 3
 				TestTools.create_x_tags_with_post(post, 2)
-				TestTools.create_like_on_post_with_user(post, u)
-				TestTools.create_seen_on_post_with_user(post, u)
-				TestTools.create_like_on_post_with_user(post, me)
 				TestTools.create_comment_with_post_and_user(post, u)
 				if i > 5
 					TestTools.create_comment_with_post_and_user(post, users[i - 1])
 				end
-				if i % 2 == 0
-					TestTools.create_friendship(me, users[i])
-					friend << true
-				else
-					friend << false
-				end
+			end
+			if i > Constants::POSTS_PER_PAGE + 3
+				TestTools.create_friendship(me, users[i])
+				TestTools.create_like_on_post_with_user(post, me)
+				friend << true
+				liked << true
+				seen << false
+			else
+				TestTools.create_seen_on_post_with_user(post, me)
+				friend << false
+				liked << false
+				seen << true
 			end
 			posts << post
 		end
 		posts.reverse!
+		friend.reverse!
+		liked.reverse!
+		seen.reverse!
 
 		TestTools.create_x_posts_with_user(me, 3)
 
@@ -98,7 +106,9 @@ class PostsControllerTest < Test::Unit::TestCase
 			assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 			assert_equal(retrieved_post["owner"]["name"], real_post.application_user.name, "post's owner's name doesn't match")
 			assert_equal(retrieved_post["owner"]["image_url"], real_post.application_user.image_url, "post's owner's image_url doesn't match")
-			assert_equal(retrieved_post["owner"]["friend"], friend[i], "post's friend doesn't match")
+			assert_equal(retrieved_post["owner"]["friend"], friend[i + Constants::POSTS_PER_PAGE], "post's friend doesn't match")
+			assert_equal(retrieved_post["liked"], liked[i + Constants::POSTS_PER_PAGE], "post's liked doesn't match")
+			assert_equal(retrieved_post["seen"], seen[i + Constants::POSTS_PER_PAGE], "post's seens doesn't match")
 
 			retrieved_tags = retrieved_post["tags"]
 			if retrieved_tags
@@ -302,51 +312,54 @@ class PostsControllerTest < Test::Unit::TestCase
 	end
 
 	def test_get_comments
-	 	me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
-	 	users = TestTools.create_x_users(Constants::COMMENTS_PER_PAGE + 5)
-	 	post = TestTools.create_post_with_user(users[0])
-	 	friend = []
-	 	fake_post = TestTools.create_post_with_user(me)
-	 	TestTools.create_x_comments_with_post_and_user(fake_post, me, 3)
-	 	comments = []
-	 	users.each_index do |i|
-	 		comments << (TestTools.create_comment_with(post, users[i], "text#{i}", DateTime.now + i.days))
-	 		if i % 2 == 0
-	 			TestTools.create_friendship(me, users[i])
-	 			friend << true
-	 		else
-	 			friend << false
-	 		end
-	 	end
-	 	comments.reverse!
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		users = TestTools.create_x_users(Constants::COMMENTS_PER_PAGE + 5)
+		post = TestTools.create_post_with_user(users[0])
+		friend = []
+		fake_post = TestTools.create_post_with_user(me)
+		TestTools.create_x_comments_with_post_and_user(fake_post, me, 3)
+		comments = []
+		users.each_index do |i|
+			comments << (TestTools.create_comment_with(post, users[i], "text#{i}", DateTime.now + i.days))
+			if i > Constants::COMMENTS_PER_PAGE + 1
+				TestTools.create_friendship(me, users[i])
+				friend << true
+			else
+				friend << false
+			end
+		end
+		comments.reverse!
+		friend.reverse!
 
-	 	request = TestTools.request
-	 	TestTools.authenticate(request, me)
-	 	response = TestTools.get(request, "/posts/#{post.id}/comments/?last_id=#{comments[Constants::COMMENTS_PER_PAGE - 1].id}")
-	 	json = JSON.parse(response.body)
-	 	assert_equal(json["status"], 200, "status code doesn't match")
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+		response = TestTools.get(request, "/posts/#{post.id}/comments/?last_id=#{comments[Constants::COMMENTS_PER_PAGE - 1].id}")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
 
-	 	json = json["body"]
+		json = json["body"]
 
-	 	retrieved_comments = json["comments"]
-	 	assert_equal(retrieved_comments.length, 5)
-	 	for i in 0...retrieved_comments.length
-	 		retrieved_comment = retrieved_comments[i]
-	 		real_comment = comments[i + Constants::COMMENTS_PER_PAGE]
-	 		assert_equal(retrieved_comment["id"], real_comment.id, "id doesn't match")
-	 		assert_equal(retrieved_comment["text"], real_comment.text, "text doesn't match")
-	 		assert_equal(DateTime.parse(retrieved_comment["creation_date"].to_s), real_comment.creation_date.to_s, "creation_date doesn't match")
-	 		assert_equal(retrieved_comment["owner"]["name"], real_comment.application_user.name, "owner's name doesn't match")
-	 		assert_equal(retrieved_comment["owner"]["image_url"], real_comment.application_user.image_url, "owner's image_url doesn't match")
-	 		assert_equal(retrieved_comment["owner"]["friend"], friend[i], "comment's friend doesn't match")
+		retrieved_comments = json["comments"]
+		assert_equal(retrieved_comments.length, 5)
+		for i in 0...retrieved_comments.length
+			retrieved_comment = retrieved_comments[i]
+			real_comment = comments[i + Constants::COMMENTS_PER_PAGE]
+			assert_equal(retrieved_comment["id"], real_comment.id, "id doesn't match")
+			assert_equal(retrieved_comment["text"], real_comment.text, "text doesn't match")
+			assert_equal(DateTime.parse(retrieved_comment["creation_date"].to_s), real_comment.creation_date.to_s, "creation_date doesn't match")
+			assert_equal(retrieved_comment["owner"]["name"], real_comment.application_user.name, "owner's name doesn't match")
+			assert_equal(retrieved_comment["owner"]["image_url"], real_comment.application_user.image_url, "owner's image_url doesn't match")
+			assert_equal(retrieved_comment["owner"]["friend"], friend[i + Constants::COMMENTS_PER_PAGE], "comment's friend doesn't match")
 
-	 	end
+		end
 	end
 
 	def test_get_my_posts
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		user = TestTools.create_user
 		posts = TestTools.create_x_posts_with_user(me, 5 + Constants::POSTS_PER_PAGE)
+		seen = []
+		liked = []
 		for i in 0...posts.length
 			if i < Constants::POSTS_PER_PAGE + 3
 				TestTools.create_x_tags_with_post(posts[i], 2)
@@ -355,8 +368,19 @@ class PostsControllerTest < Test::Unit::TestCase
 				TestTools.create_seen_on_post_with_user(posts[i], me)
 				TestTools.create_comment_with_post_and_user(posts[i], user)
 			end
+			if i > Constants::POSTS_PER_PAGE + 2
+				TestTools.create_like_on_post_with_user(posts[i], me)
+				liked << true
+				seen << false
+			else
+				TestTools.create_seen_on_post_with_user(posts[i], me)
+				liked << false
+				seen << true
+			end
 		end
 		posts.reverse!
+		seen.reverse!
+		liked.reverse!
 		TestTools.create_x_posts_with_user(user, 10)
 
 		request = TestTools.request
@@ -375,21 +399,23 @@ class PostsControllerTest < Test::Unit::TestCase
 			real_post = posts[i + Constants::POSTS_PER_PAGE]
 			assert_equal(retrieved_post["id"], real_post.id, "id doesn't match")
 			assert_equal(retrieved_post["text"], real_post.text, "text doesn't match")
-	  		assert_equal(DateTime.parse(retrieved_post["creation_date"].to_s), real_post.creation_date.to_s, "creation_date doesn't match")
-	  		assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes count doesn't match")
-	  		assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
-	  		assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
-	  		
-	  		retrieved_tags = retrieved_post["tags"]
-	  		if retrieved_tags
-	  			real_tags = []
-	  			real_post.tags.each do |t|
-	  				real_tags << t.text
-	  			end
-	  			retrieved_tags.each do |t|
-	  				assert(real_tags.include?(t))
-	  			end
-	  		end
+			assert_equal(DateTime.parse(retrieved_post["creation_date"].to_s), real_post.creation_date.to_s, "creation_date doesn't match")
+			assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes count doesn't match")
+			assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
+			assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
+			assert_equal(retrieved_post["seen"], seen[i + Constants::POSTS_PER_PAGE], "seen doesn't match")
+			assert_equal(retrieved_post["liked"], liked[i + Constants::POSTS_PER_PAGE], "liked doesn't match")
+
+			retrieved_tags = retrieved_post["tags"]
+			if retrieved_tags
+				real_tags = []
+				real_post.tags.each do |t|
+					real_tags << t.text
+				end
+				retrieved_tags.each do |t|
+					assert(real_tags.include?(t))
+				end
+			end
 		end
 	end
 end
