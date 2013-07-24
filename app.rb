@@ -17,6 +17,8 @@ require './controllers/images_controller'
 
 API_KEY = "nd6YyykHsCygZZi64F"
 
+set :protection, :except => [:http_origin]
+
 if Rack::Utils.respond_to?("key_space_limit=")
   	Rack::Utils.key_space_limit = 400000 
 end
