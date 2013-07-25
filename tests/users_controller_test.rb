@@ -109,6 +109,7 @@ class UsersControllerTest < Test::Unit::TestCase
 	def test_get_me
 		users = TestTools.create_x_users(10)
 		posts = []
+		myPosts = []
 		for i in 0...users.length
 			post = TestTools.create_post_with("text#{i}", "image_url#{i}", DateTime.now, users[i])
 			posts << post
@@ -119,6 +120,9 @@ class UsersControllerTest < Test::Unit::TestCase
 		end
 
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		for i in 0...10
+			myPosts << TestTools.create_post_with_user(me)
+		end
 
 		for i in 0...posts.length
 			if i == 1 || i == 3
@@ -142,6 +146,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_equal(json["name"], me.name, "name doesn't match")
 		assert_equal(json["seens_count"], 8, "seens_count doesn't match")
 		assert_equal(json["likes_count"], 2, "likes_count doesn't match")
+		assert_equal(json["posts_count"], myPosts.length, "posts_count doesn't match")
 	end
 
 	def test_get_users
