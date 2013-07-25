@@ -163,7 +163,8 @@ put %r{^/me/geolocation/?$} do
 	is_valid = Tools.validate_against_schema(schema, @json)
 	haltJsonp 400, is_valid[1] unless is_valid[0]
 
-	coordinate = Coordinate.where(:application_user_id => @user.id).first_or_create
+	coordinate = Coordinate.where(:application_user_id => @user.id).first
+	coordinate = Coordinate.new(:application_user_id => @user.id) unless coordinate
 	coordinate.latitude = @json["coordinates"]["lat"]
 	coordinate.longitude = @json["coordinates"]["long"]
 	haltJsonp 500, "Couldn't create the location" unless coordinate.save

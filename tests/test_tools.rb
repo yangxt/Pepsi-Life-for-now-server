@@ -1,4 +1,5 @@
 require './tests/common'
+require 'base64'
 
 Dir["./models/*.rb"].each do |f|
 	require f
