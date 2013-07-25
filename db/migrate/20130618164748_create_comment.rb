@@ -1,5 +1,5 @@
 class CreateComment < ActiveRecord::Migration
-  def up
+  def self.up
   	create_table :comments do |t|
   		t.text :text
   		t.datetime :creation_date
@@ -8,7 +8,7 @@ class CreateComment < ActiveRecord::Migration
   	end
   end
 
-  def down
+  def self.down
   	drop_table :comments
   end
 end

@@ -2,7 +2,7 @@ ruby '2.0.0'
 source "https://rubygems.org"
  
 gem "sinatra"
-gem "activerecord", "~> 3.0.9"
+gem "activerecord", "~> 3.0.20"
 gem "sinatra-activerecord"
 gem "pg"
 gem "multi_json", "~> 1.3.7"

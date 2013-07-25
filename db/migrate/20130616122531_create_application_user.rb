@@ -1,5 +1,5 @@
 class CreateApplicationUser < ActiveRecord::Migration
-  def up
+  def self.up
   	create_table :application_users do |t|
   		t.string :username
   		t.string :password
@@ -9,7 +9,7 @@ class CreateApplicationUser < ActiveRecord::Migration
   	end
   end
 
-  def down
+  def self.down
   	drop_table :application_users
   end
 end

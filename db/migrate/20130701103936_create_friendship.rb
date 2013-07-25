@@ -1,12 +1,12 @@
 class CreateFriendship < ActiveRecord::Migration
-  def up
+  def self.up
   	create_table :friendships do |t|
       t.references :user1
       t.references :user2
     end
   end
 
-  def down
+  def self.down
   	drop_table :friendships
   end
 end

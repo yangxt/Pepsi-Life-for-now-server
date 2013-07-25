@@ -1,5 +1,5 @@
 class CreateCoordinate < ActiveRecord::Migration
-  def up
+  def self.up
   	create_table :coordinates do |t|
   		t.float :latitude
   		t.float :longitude
@@ -7,7 +7,7 @@ class CreateCoordinate < ActiveRecord::Migration
   	end
   end
 
-  def down
+  def self.down
   	drop_table :coordinates
   end
 end
