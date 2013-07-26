@@ -3,6 +3,7 @@ require 'sinatra'
 require 'sinatra/activerecord'
 require './helpers/constants'
 require './helpers/s3'
+require "base64"
 
 post %r{^/images/?$} do
 	base64 = request.body.read
