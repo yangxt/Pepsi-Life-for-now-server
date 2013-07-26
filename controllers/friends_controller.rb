@@ -156,7 +156,7 @@ get %r{^/me/friends/(\d+)/posts/?$} do
 	################################################
 	#Build the response
 
-	result = {:posts => []}
+	result = {:posts => [], :posts_count => friend.posts.count, :likes_count => friend.likes.where(:application_user_id => friend.id).count}
 
 	full_posts.each do |f|
 		array = result[:posts]

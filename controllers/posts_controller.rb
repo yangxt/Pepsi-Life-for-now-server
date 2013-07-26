@@ -392,7 +392,7 @@ get %r{^/me/posts/?$} do
 	################################################
 	#Build the response
 
-	result = {:posts => []}
+	result = {:posts => [], :posts_count => @user.posts.count, :likes_count => @user.likes.where(:application_user_id => @user.id).count}
 
 	full_posts.each do |f|
 		array = result[:posts]

@@ -391,6 +391,9 @@ class PostsControllerTest < Test::Unit::TestCase
 
 		json = json["body"]
 
+		assert_equal(json["posts_count"], 5 + Constants::POSTS_PER_PAGE, "posts_count doesn't match")
+		assert_equal(json["likes_count"], 2, "likes_count doesn't match")
+
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
 

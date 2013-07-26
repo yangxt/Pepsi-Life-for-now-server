@@ -198,6 +198,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 			end
 			if i > Constants::POSTS_PER_PAGE + 1
 				TestTools.create_like_on_post_with_user(posts[i], me)
+				TestTools.create_like_on_post_with_user(posts[i], friend)
 				liked << true
 				seen << false
 			else
@@ -217,6 +218,9 @@ class FriendsControllerTest < Test::Unit::TestCase
 		assert_equal(json["status"], 200, "status code doesn't match")
 
 		json = json["body"]
+
+		assert_equal(json["posts_count"], 5 + Constants::POSTS_PER_PAGE, "posts_count doesn't match")
+		assert_equal(json["likes_count"], 3, "likes_count doesn't match")
 
 		retrieved_posts = json["posts"]
 		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
