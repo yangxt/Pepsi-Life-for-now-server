@@ -150,6 +150,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_equal(json["likes_count"], 2, "likes_count doesn't match")
 		assert_equal(json["posts_count"], myPosts.length, "posts_count doesn't match")
 		assert_equal(json["description"], me.description, "description doesn't match")
+		assert_equal(json["image_url"], me.image_url, "image_url doesn't match")
 	end
 
 	def test_get_users

@@ -156,7 +156,8 @@ get %r{^/me/?$} do
 		"seens_count" => @user.seens.count,
 		"likes_count" => @user.likes.count,
 		"posts_count" => @user.posts.count,
-		"description" => @user.description
+		"description" => @user.description,
+		"image_url" => @user.image_url
 	}
 	jsonp({:status => 200, :body => result})
 end
