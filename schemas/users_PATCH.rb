@@ -11,6 +11,9 @@ module Schemas
 			},
 			"image_url" => {
 				"type" => "string"
+			},
+			"description" => {
+				"type" => "string"
 			}
 		}
 	}

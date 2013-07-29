@@ -47,7 +47,7 @@ get %r{^/users/?$} do
 	users_query_parameters = {
 		:limit => Constants::USERS_PER_PAGE,
        	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
-       	:select => "application_users.id, application_users.name, application_users.image_url, coordinates.latitude, coordinates.longitude, coordinates.id as coordinates_id",
+       	:select => "application_users.id, application_users.name, application_users.description, application_users.image_url, coordinates.latitude, coordinates.longitude, coordinates.id as coordinates_id",
         :group => "application_users.id, coordinates.id",
         :order => "application_users.id DESC",
         :conditions => ["application_users.id != :user", {:user => @user.id}]
@@ -132,7 +132,8 @@ get %r{^/users/?$} do
 			:image_url => u.image_url,
 			:friend => friends.include?(u),
 			:seens_count => seens_counts[i].count.to_i,
-			:likes_count => likes_counts[i].count.to_i
+			:likes_count => likes_counts[i].count.to_i,
+			:description => u.description
 		}
 		if u.coordinates_id
 			user[:coordinate] = {
@@ -154,7 +155,8 @@ get %r{^/me/?$} do
 		"name" => @user.name,
 		"seens_count" => @user.seens.count,
 		"likes_count" => @user.likes.count,
-		"posts_count" => @user.posts.count
+		"posts_count" => @user.posts.count,
+		"description" => @user.description
 	}
 	jsonp({:status => 200, :body => result})
 end

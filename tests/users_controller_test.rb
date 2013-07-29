@@ -60,7 +60,8 @@ class UsersControllerTest < Test::Unit::TestCase
 		TestTools.authenticate(request, user)
 		body = {
 			"name" => "new_name",
-			"image_url" => "new_image_url"
+			"image_url" => "new_image_url",
+			"description" => "new_description"
 		}
 		response = TestTools.patch(request, '/me/', body)
 		json = JSON.parse(response.body)
@@ -70,6 +71,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_equal(saved_user, user, "user doesn't match")
 		assert_equal(saved_user.name, body["name"], "name doesn't match")
 		assert_equal(saved_user.image_url, body["image_url"], "image_url doesn't match")
+		assert_equal(saved_user.description, body["description"], "description doesn't match")
 	end
 
 	def test_patch_me_only_name
@@ -147,6 +149,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_equal(json["seens_count"], 8, "seens_count doesn't match")
 		assert_equal(json["likes_count"], 2, "likes_count doesn't match")
 		assert_equal(json["posts_count"], myPosts.length, "posts_count doesn't match")
+		assert_equal(json["description"], me.description, "description doesn't match")
 	end
 
 	def test_get_users
@@ -186,6 +189,7 @@ class UsersControllerTest < Test::Unit::TestCase
 			assert_equal(ru["id"], real_user.id, "id doesn't match")
 			assert_equal(ru["name"], real_user.name, "name doesn't match")
 			assert_equal(ru["image_url"], real_user.image_url, "image_url doesn't match")
+			assert_equal(ru["description"], real_user.description, "description doesn't match")
 
 			if ru["coordinate"] == "null"
 				assert_nil(real_user.coordinate)

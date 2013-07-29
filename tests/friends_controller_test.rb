@@ -85,7 +85,8 @@ class FriendsControllerTest < Test::Unit::TestCase
 			friend_object = {
 				"id" => f.id,
 				"name" => f.name,
-				"image_url" => f.image_url
+				"image_url" => f.image_url,
+				"description" => f.description
 			}
 			if f.coordinate
 				friend_object["coordinate"] = {
@@ -143,7 +144,8 @@ class FriendsControllerTest < Test::Unit::TestCase
 					"coordinate" => {
 						"latitude" => f.coordinate.latitude,
 						"longitude" => f.coordinate.longitude
-					}
+					},
+					"description" => f.description
 			}
 			else
 				latitude = Random.rand(0..latitude_bounds[:min])

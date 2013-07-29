@@ -58,6 +58,7 @@ get %r{^/me/friends/?$} do
 			:id => f.id,
 			:name => f.name,
 			:image_url => f.image_url,
+			:description => f.description
 		}
 		if f.latitude && f.longitude
 			friend[:coordinate] = {
