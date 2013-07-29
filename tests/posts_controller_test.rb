@@ -408,6 +408,8 @@ class PostsControllerTest < Test::Unit::TestCase
 			assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 			assert_equal(retrieved_post["seen"], seen[i + Constants::POSTS_PER_PAGE], "seen doesn't match")
 			assert_equal(retrieved_post["liked"], liked[i + Constants::POSTS_PER_PAGE], "liked doesn't match")
+			assert_equal(retrieved_post["owner"]["image_url"], me.image_url, "liked doesn't match")
+			assert_equal(retrieved_post["owner"]["name"], me.name, "liked doesn't match")
 
 			retrieved_tags = retrieved_post["tags"]
 			if retrieved_tags

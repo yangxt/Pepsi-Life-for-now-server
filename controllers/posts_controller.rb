@@ -406,7 +406,11 @@ get %r{^/me/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 			:comments_count => f[:comments_count].to_i,
 			:liked => f[:liked],
-			:seen => f[:seen]
+			:seen => f[:seen],
+			:owner => {
+				:image_url => @user.image_url,
+				:name => @user.name
+			}
 		}
 	end
 	jsonp({:status => 200, :body => result})
