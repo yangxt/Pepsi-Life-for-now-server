@@ -11,6 +11,16 @@ user5 = TestTools.create_user_with("Jonathan", "Jonathan", "Jonathan", "http://b
 user6 = TestTools.create_user_with("Francois", "Francois", "François", "http://cdn.ilcinemaniaco.com/wp-content/uploads/2008/09/foto6.jpg", "C'est la fête!")
 
 ##################
+#Coordinates
+##################
+TestTools.create_coordinate_with_user(user1, 49.0, 5.0);
+TestTools.create_coordinate_with_user(user2, 48.0, 5.0);
+TestTools.create_coordinate_with_user(user3, 49.0, 4.7);
+TestTools.create_coordinate_with_user(user4, 51.0, 9.0);
+TestTools.create_coordinate_with_user(user5, 46.0, 3.0);
+TestTools.create_coordinate_with_user(user6, 49.0, 6.0);
+
+##################
 #Friends
 ##################
 
