@@ -2,7 +2,7 @@
 require ('./tests/test_tools')
 
 TestTools.delete_all
-me = TestTools.create_user_with("testuser", "testuser", "testuser", "...", "...")
+me = TestTools.create_user_with("testuser", "testuser", "testuser", "Like music", "http://www.chillinpanda.com/img01/celeb-portraits20.jpg")
 user1 = TestTools.create_user_with("Stéphanie", "Stéphanie", "Stéphanie", "http://elperiodicovenezolano.com/wp-content/uploads/2013/05/Cara-de-Maggie-Grace.jpg", "J'adore Pepsi")
 user2 = TestTools.create_user_with("Marion", "Marion", "Marion", "http://mspoki.tvnet.lv/upload/articles/43/43386/images/Woman-14.jpg", "Une petite bouteille de Pepsi?")
 user3 = TestTools.create_user_with("Jéremy", "Jéremy", "Jéremy", "http://media.caak.mn/downloads/images14/201008/power-photos/portret_009.jpg", "Quel bel été")
@@ -13,10 +13,10 @@ user6 = TestTools.create_user_with("Francois", "Francois", "François", "http://
 ##################
 #Coordinates
 ##################
-TestTools.create_coordinate_with_user(user1, 49.0, 5.0);
-TestTools.create_coordinate_with_user(user2, 48.0, 5.0);
-TestTools.create_coordinate_with_user(user3, 49.0, 4.7);
-TestTools.create_coordinate_with_user(user4, 51.0, 9.0);
+TestTools.create_coordinate_with_user(user1, -20.969134, 55.351868);
+TestTools.create_coordinate_with_user(user2, -21.115141, 55.536384);
+TestTools.create_coordinate_with_user(user3, -21.32264, 55.610046);
+TestTools.create_coordinate_with_user(user4, -21.115141, 55.536384);
 TestTools.create_coordinate_with_user(user5, 46.0, 3.0);
 TestTools.create_coordinate_with_user(user6, 49.0, 6.0);
 
