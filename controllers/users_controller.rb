@@ -90,60 +90,176 @@ get %r{^/users/?$} do
 
 	users = ApplicationUser.find(:all, users_query_parameters)
 	users_ids = []
+	full_users = []
 	users.each do |u|
+		full_users << {
+			:user => u,
+			:likes_count => 0,
+			:seens_count => 0,
+			:posts_count => 0
+		}
 		users_ids << u.id
+	end
+
+	################################################
+	#Retrieve posts count for each user
+
+	posts_counts = ApplicationUser.posts_counts_for_users(users)
+	posts_counts.each do |l|
+		full_user = full_users[users_ids.index(l.application_user_id)]
+		full_user[:posts_count] = l.count
 	end
 
 	################################################
 	#Retrieve likes count for each user
 
-	likes_query_parameters = {
-		:joins => "LEFT JOIN likes ON likes.application_user_id = application_users.id",
-       	:select => "count(likes.id) as count",
-        :group => "application_users.id",
-        :order => "application_users.id ASC",
-        :conditions => ["application_users.id in (:users_ids)", {:users_ids => users_ids}]
-	}
-
-	likes_counts = ApplicationUser.find(:all, likes_query_parameters)
+	likes_counts = ApplicationUser.likes_counts_for_users(users)
+	likes_counts.each do |l|
+		full_user = full_users[users_ids.index(l.application_user_id)]
+		full_user[:likes_count] = l.count
+	end
 
 	################################################
 	#Retrieve seens count for each user
 
-	seens_query_parameters = {
-		:joins => "LEFT JOIN seens ON seens.application_user_id = application_users.id",
-       	:select => "count(seens.id) as count",
-        :group => "application_users.id",
-        :order => "application_users.id ASC",
-        :conditions => ["application_users.id in (:users_ids)", {:users_ids => users_ids}]
-	}
-
-	seens_counts = ApplicationUser.find(:all, seens_query_parameters)
+	seens_counts = ApplicationUser.seens_counts_for_users(users)
+	seens_counts.each do |l|
+		full_user = full_users[users_ids.index(l.application_user_id)]
+		full_user[:seens_count] = l.count
+	end
 
 	################################################
 	#Build the response
 
 	result = {:users => []}
 	friends = @user.friends
-	users.each_with_index do |u, i|
+	full_users.each_with_index do |u|
 		user = {
-			:id => u.id,
-			:name => u.name,
-			:image_url => u.image_url,
-			:friend => friends.include?(u),
-			:seens_count => seens_counts[i].count.to_i,
-			:likes_count => likes_counts[i].count.to_i,
-			:description => u.description
+			:id => u[:user].id,
+			:name => u[:user].name,
+			:image_url => u[:user].image_url,
+			:friend => friends.include?(u[:user]),
+			:seens_count => u[:seens_count].to_i,
+			:likes_count => u[:likes_count].to_i,
+			:posts_count => u[:posts_count].to_i,
+			:description => u[:user].description
 		}
-		if u.coordinates_id
+		if u[:user].coordinates_id
 			user[:coordinate] = {
-				:latitude => u.latitude.to_f,
-				:longitude => u.longitude.to_f
+				:latitude => u[:user].latitude.to_f,
+				:longitude => u[:user].longitude.to_f
 			}
 		else
 			user[:coordinate] = "null"
 		end
 		result[:users] << user
+	end
+	jsonp({:status => 200, :body => result})
+end
+
+get %r{^/users/(\d+)/posts/?$} do
+	user_id = params[:captures][0]
+	user = ApplicationUser.where(:id => user_id).first
+	haltJsonp 404 unless user
+
+	last_id = params[:last_id].to_i if params[:last_id] 
+
+	################################################
+	#Get the posts
+
+	posts = Post.limit(Constants::POSTS_PER_PAGE).order("posts.id DESC").where(["application_user_id = :user_id and posts.id < :last_id", {:user_id => user_id, :last_id => last_id}])
+	posts_ids = []
+	full_posts = []
+	posts.each do |p|
+		full_posts << {
+			:post => p,
+			:likes_count => 0,
+			:seens_count => 0,
+			:comments_count => 0
+		}
+		posts_ids << p.id
+	end
+
+	################################################
+	#Get the tag of the retrieved posts
+
+	tags = Post.tags_for_posts(posts)
+	tags.each do |t|
+		full_post = full_posts[posts_ids.index(t.post_id)]
+		full_post[:tags] = full_post[:tags] || []
+		full_post[:tags] << t.text
+	end
+
+		################################################
+	#Get the likes count of the retrieved posts
+
+	likes_counts = Post.likes_counts_for_posts(posts)
+	likes_counts.each do |l|
+		full_post = full_posts[posts_ids.index(l.post_id)]
+		full_post[:likes_count] = l.count
+	end
+
+	################################################
+	#Get the seens count of the retrieved posts
+
+	seens_counts = Post.seens_counts_for_posts(posts)
+	seens_counts.each do |s|
+		full_post = full_posts[posts_ids.index(s.post_id)]
+		full_post[:seens_count] = s.count
+	end
+
+	################################################
+	#Get the comments count of the retrieved posts
+
+	comments_count = Post.comments_counts_for_posts(posts)
+	comments_count.each do |s|
+		full_post = full_posts[posts_ids.index(s.post_id)]
+		full_post[:comments_count] = s.count
+	end
+
+	################################################
+	#Get seens posts
+
+	posts = Post.seen_posts_for_user(@user)
+	full_posts.each do |f|
+		if (posts.include?(f[:post]))
+			f[:seen] = true
+		else
+			f[:seen] = false
+		end
+	end
+
+	################################################
+	#Get liked posts
+
+	posts = Post.liked_posts_for_user(@user)
+	full_posts.each do |f|
+		if (posts.include?(f[:post]))
+			f[:liked] = true
+		else
+			f[:liked] = false
+		end
+	end
+
+	################################################
+	#Build the response
+
+	result = {:posts => [], :posts_count => user.posts.count, :likes_count => user.likes.count}
+
+	full_posts.each do |f|
+		array = result[:posts]
+		array << {
+			:id => f[:post].id,
+			:text => f[:post].text,
+			:image_url => f[:post].image_url,
+			:tags => f[:tags],
+			:creation_date => f[:post].creation_date,
+			:likes_count => f[:likes_count].to_i,
+			:seens_count => f[:seens_count].to_i,
+			:comments_count => f[:comments_count].to_i,
+			:liked => f[:liked],
+			:seen => f[:seen]
+		}
 	end
 	jsonp({:status => 200, :body => result})
 end

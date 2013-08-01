@@ -63,4 +63,52 @@ class ApplicationUser < ActiveRecord::Base
 		return nil if friendship.length == 0
 		ApplicationUser.find(id)
 	end
+
+	def self.posts_counts_for_users(users)
+		users_ids = users_ids_for_users(users)
+
+		posts_query_parameters = {
+			:joins => "LEFT JOIN application_users ON application_users.id = posts.application_user_id",
+			:select => "count(posts.application_user_id) as count, posts.application_user_id",
+			:group => "posts.application_user_id",
+			:conditions => ["posts.application_user_id in (:users_ids)", {:users_ids => users_ids}]
+		}
+
+		posts_counts = Post.find(:all, posts_query_parameters)
+	end
+
+	def self.likes_counts_for_users(users)
+		users_ids = users_ids_for_users(users)
+
+		likes_query_parameters = {
+			:joins => "LEFT JOIN application_users ON application_users.id = likes.application_user_id",
+			:select => "count(likes.application_user_id) as count, likes.application_user_id",
+			:group => "likes.application_user_id",
+			:conditions => ["likes.application_user_id in (:users_ids)", {:users_ids => users_ids}]
+		}
+
+		likes_counts = Like.find(:all, likes_query_parameters)
+	end
+
+	def self.seens_counts_for_users(users)
+		users_ids = users_ids_for_users(users)
+
+		seens_query_parameters = {
+			:joins => "LEFT JOIN application_users ON application_users.id = seens.application_user_id",
+			:select => "count(seens.application_user_id) as count, seens.application_user_id",
+			:group => "seens.application_user_id",
+			:conditions => ["seens.application_user_id in (:users_ids)", {:users_ids => users_ids}]
+		}
+
+		seens_counts = Seen.find(:all, seens_query_parameters)
+	end
+
+	private
+	def self.users_ids_for_users(users)
+		users_ids = []
+		users.each do |p|
+			users_ids << p.id
+		end
+		users_ids
+	end
 end

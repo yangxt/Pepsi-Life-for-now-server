@@ -30,7 +30,6 @@ class Post < ActiveRecord::Base
 			:group => "likes.post_id",
 			:conditions => ["likes.post_id in (:posts_ids)", {:posts_ids => posts_ids}]
 		}
-
 		likes_counts = Like.find(:all, likes_query_parameters)
 	end
 

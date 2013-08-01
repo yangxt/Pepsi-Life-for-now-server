@@ -90,7 +90,10 @@ get %r{^/posts/?$} do
 	full_posts = []
 	posts.each do |p|
 		full_posts << {
-			:post => p
+			:post => p,
+			:likes_count => 0,
+			:seens_count => 0,
+			:comments_count => 0
 		}
 		posts_ids << p.id
 	end

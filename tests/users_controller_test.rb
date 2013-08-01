@@ -156,21 +156,17 @@ class UsersControllerTest < Test::Unit::TestCase
 	def test_get_users
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		users = TestTools.create_x_users(Constants::USERS_PER_PAGE + 7)
-		posts = []
 		users.each_index do |i|
 			if i > 3
 				TestTools.create_coordinate_with_user(users[i], i + 0.1, i + 1.1)
 			end
-			if i < Constants::USERS_PER_PAGE + 3
+			if i < 3
 				TestTools.create_friendship(me, users[i])
 			end
-			if i < Constants::USERS_PER_PAGE+ 15
+			if i < 4
 				post = TestTools.create_post_with("text#{i}", "image_url#{i}", DateTime.now, users[i])
-				posts << post
 				TestTools.create_like_on_post_with_user(post, users[i])
-				TestTools.create_like_on_post_with_user(posts[i-1], users[i])
 				TestTools.create_seen_on_post_with_user(post, users[i])
-				TestTools.create_seen_on_post_with_user(posts[i-1], users[i])
 			end
 		end
 		users.reverse!
@@ -203,6 +199,72 @@ class UsersControllerTest < Test::Unit::TestCase
 			assert_equal(ru["friend"], is_friend, "friend doesn't match")
 			assert_equal(ru["seens_count"], real_user.seens.count, "seens_count doesn't match")
 			assert_equal(ru["likes_count"], real_user.likes.count, "likes_count doesn't match")
+			assert_equal(ru["posts_count"], real_user.posts.count, "posts_count doesn't match")
+		end
+	end
+
+	def test_get_user_posts
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		user = TestTools.create_user
+		posts = TestTools.create_x_posts_with_user(user, Constants::POSTS_PER_PAGE + 5)
+		liked = []
+		seen = []
+
+		for i in 0...posts.length
+			if i < 3
+				TestTools.create_x_tags_with_post(posts[i], 2)
+				TestTools.create_like_on_post_with_user(posts[i], user)
+				TestTools.create_comment_with_post_and_user(posts[i], user)
+			end
+			if i > 1
+				TestTools.create_like_on_post_with_user(posts[i], me)
+				liked << true
+				seen << false
+			else
+				TestTools.create_seen_on_post_with_user(posts[i], me)
+				liked << false
+				seen << true
+			end
+		end
+		posts.reverse!
+		liked.reverse!
+		seen.reverse!
+
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+		response = TestTools.get(request, "/users/#{user.id}/posts/?last_id=#{posts[Constants::POSTS_PER_PAGE - 1].id}")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
+
+		assert_equal(json["posts_count"], Constants::POSTS_PER_PAGE + 5, "count of posts doesn't match")
+		assert_equal(json["likes_count"], 3, "count of likes doesn't match")
+		retrieved_posts = json["posts"]
+		assert_equal(retrieved_posts.length, 5, "number of posts doesn't match")
+
+		retrieved_posts.each_index do |i|
+			retrieved_post = retrieved_posts[i]
+			real_post = posts[i + Constants::POSTS_PER_PAGE]
+			assert_equal(retrieved_post["id"], real_post.id, "id doesn't match")
+			assert_equal(retrieved_post["text"], real_post.text, "text doesn't match")
+	  		assert_equal(DateTime.parse(retrieved_post["creation_date"].to_s), real_post.creation_date.to_s, "creation_date doesn't match")
+	  		assert_equal(retrieved_post["likes_count"], real_post.likes.count, "likes count doesn't match")
+	  		assert_equal(retrieved_post["seens_count"], real_post.seens.count, "seens_count doesn't match")
+	  		assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
+	  		assert_equal(retrieved_post["seen"], seen[i + Constants::POSTS_PER_PAGE], "seen doesn't match")
+	  		assert_equal(retrieved_post["liked"], liked[i + Constants::POSTS_PER_PAGE], "liked doesn't match")
+	  		
+	  		retrieved_tags = retrieved_post["tags"]
+	  		if retrieved_tags
+	  			real_tags = []
+	  			real_post.tags.each do |t|
+	  				real_tags << t.text
+	  			end
+	  			retrieved_tags.each do |t|
+	  				assert(real_tags.include?(t))
+	  			end
+	  		end
 		end
 	end
 

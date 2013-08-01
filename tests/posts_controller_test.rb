@@ -56,14 +56,14 @@ class PostsControllerTest < Test::Unit::TestCase
 		seen = []
 		users.each_with_index do |u, i|
 			post = TestTools.create_post_with("text1", "image_url1", DateTime.now + i.days, u)
-			if i < Constants::POSTS_PER_PAGE + 3
+			if i < 3
 				TestTools.create_x_tags_with_post(post, 2)
 				TestTools.create_comment_with_post_and_user(post, u)
 				if i > 5
 					TestTools.create_comment_with_post_and_user(post, users[i - 1])
 				end
 			end
-			if i > Constants::POSTS_PER_PAGE + 3
+			if i > 3
 				TestTools.create_friendship(me, users[i])
 				TestTools.create_like_on_post_with_user(post, me)
 				friend << true
