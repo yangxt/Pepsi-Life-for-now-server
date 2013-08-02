@@ -49,6 +49,8 @@ module TestTools
 			request.get(path)
 		when :patch
 			request.patch(path, params=json)
+		when :delete
+			request.delete(path, params=json)
 		end
 		request.last_response
 	end
@@ -67,6 +69,10 @@ module TestTools
 
 	def self.patch(request, path, body)
 		self.send_request(request, :patch, path, body)
+	end
+
+	def self.delete(request, path)
+		self.send_request(request, :delete, path, nil)
 	end
 
 	#ApplicationUser

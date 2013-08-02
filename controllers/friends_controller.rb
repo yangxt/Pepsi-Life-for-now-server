@@ -28,6 +28,19 @@ post %r{^/me/friends/?$} do
 	jsonp({:status => 200, :body => {}})
 end
 
+delete %r{^/me/friends/(\d+)?$} do
+	friend_id = params[:captures][0]
+
+	friendship = Friendship.where(["(user1_id = :user and user2_id = :friend) or (user1_id = :friend and user2_id = :user)", {:user => @user.id, :friend => friend_id}]).first
+	if !friendship
+		haltJsonp 500, "This user it not your friend"
+	else
+		Friendship.delete(friendship.id)
+	end
+
+	jsonp({:status => 200, :body => {}})
+end
+
 get %r{^/me/friends/?$} do
 	bounds = {
 		:from_lat => params[:from_lat],

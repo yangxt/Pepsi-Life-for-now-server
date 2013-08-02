@@ -37,6 +37,21 @@ class FriendsControllerTest < Test::Unit::TestCase
 		assert_equal(friendships[0].user2_id, other_user.id)
 	end
 
+	def test_delete_friend
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		friend = TestTools.create_user
+		other_user = TestTools.create_user
+		TestTools.create_friendship(me, friend)
+		TestTools.create_friendship(other_user, friend)
+
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+		response = TestTools.delete(request, "/me/friends/#{friend.id}")
+		json = JSON.parse(response.body);
+		assert_equal(json["status"], 200, "status code doesn't match")
+		assert_equal(Friendship.find(:all).count, 1, "friendship was not delete")
+	end
+
 	def test_post_me_as_friend
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 
