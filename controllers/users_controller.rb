@@ -167,7 +167,14 @@ get %r{^/users/(\d+)/posts/?$} do
 	################################################
 	#Get the posts
 
-	posts = Post.limit(Constants::POSTS_PER_PAGE).order("posts.id DESC").where(["application_user_id = :user_id and posts.id < :last_id", {:user_id => user_id, :last_id => last_id}])
+	conditions = ["application_user_id = :user_id", {:user_id => user_id}]
+
+	if last_id
+		conditions[0] << " and posts.id < :last_id"
+		conditions[1][:last_id] = last_id
+	end
+
+	posts = Post.limit(Constants::POSTS_PER_PAGE).order("posts.id DESC").where(conditions)
 	posts_ids = []
 	full_posts = []
 	posts.each do |p|
