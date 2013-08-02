@@ -16,7 +16,6 @@ user6 = TestTools.create_user_with("Francois", "Francois", "François", "http://
 TestTools.create_coordinate_with_user(user1, -20.969134, 55.351868);
 TestTools.create_coordinate_with_user(user2, -21.115141, 55.536384);
 TestTools.create_coordinate_with_user(user3, -21.32264, 55.610046);
-TestTools.create_coordinate_with_user(user4, -21.115141, 55.536384);
 TestTools.create_coordinate_with_user(user5, 46.0, 3.0);
 TestTools.create_coordinate_with_user(user6, 49.0, 6.0);
 
