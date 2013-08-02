@@ -8,27 +8,30 @@ class ApplicationUser < ActiveRecord::Base
 	has_many :seens, :inverse_of => :application_user
 	has_many :comments, :inverse_of => :application_user
 
-	def friends
-		friends = ApplicationUser.find(
-			:all,
+	def friends()
+		friends_query_parameters = {
+			:limit => Constants::USERS_MAX,
 			:joins => "INNER JOIN friendships ON application_users.id = friendships.user1_id LEFT JOIN coordinates ON friendships.user1_id = coordinates.application_user_id",
 			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
 			:group => "application_users.id, coordinates.id",
 			:conditions => ["user2_id = :id", {:id => self.id}]
-		)
+		}
 
-		friends.concat(ApplicationUser.find(
-			:all,
+		friends_query2_parameters = {
 			:joins => "INNER JOIN friendships ON application_users.id = friendships.user2_id LEFT JOIN coordinates ON friendships.user2_id = coordinates.application_user_id",
 			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
 			:group => "application_users.id, coordinates.id",
 			:conditions => ["user1_id = :id", {:id => self.id}]
-		))
+		}
+
+		friends = ApplicationUser.find(:all, friends_query_parameters)
+		friends_query2_parameters[:limit] = Constants::USERS_MAX - friends.count
+		friends.concat(ApplicationUser.find(:all, friends_query2_parameters))
 	end
 
 	def friends_in_bounds(bounds)
-		friends = ApplicationUser.find(
-			:all,
+		friends_query_parameters = {
+			:limit => Constants::USERS_MAX,
 			:joins => "INNER JOIN friendships ON application_users.id = friendships.user1_id LEFT JOIN coordinates ON friendships.user1_id = coordinates.application_user_id",
 			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
 			:group => "application_users.id, coordinates.id",
@@ -40,10 +43,9 @@ class ApplicationUser < ActiveRecord::Base
 				:to_lat => bounds[:to_lat],
 				:from_long => bounds[:from_long],
 				:to_long => bounds[:to_long]}]
-		)
+		}
 
-		friends.concat(ApplicationUser.find(
-			:all,
+		friends_query2_parameters = {
 			:joins => "INNER JOIN friendships ON application_users.id = friendships.user2_id LEFT JOIN coordinates ON friendships.user2_id = coordinates.application_user_id",
 			:select => "application_users.*, coordinates.latitude, coordinates.longitude",
 			:group => "application_users.id, coordinates.id",
@@ -55,7 +57,11 @@ class ApplicationUser < ActiveRecord::Base
 				:to_lat => bounds[:to_lat],
 				:from_long => bounds[:from_long],
 				:to_long => bounds[:to_long]}]
-		))
+		}
+
+		friends = ApplicationUser.find(:all, friends_query_parameters)
+		friends_query2_parameters[:limit] = Constants::USERS_MAX - friends.count
+		friends.concat(ApplicationUser.find(:all, friends_query2_parameters))
 	end
 
 	def friend_by_id(id)

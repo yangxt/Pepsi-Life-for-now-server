@@ -155,7 +155,7 @@ class UsersControllerTest < Test::Unit::TestCase
 
 	def test_get_users
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
-		users = TestTools.create_x_users(Constants::USERS_PER_PAGE + 7)
+		users = TestTools.create_x_users(Constants::USERS_MAX + 7)
 		users.each_index do |i|
 			if i > 3
 				TestTools.create_coordinate_with_user(users[i], i + 0.1, i + 1.1)
@@ -173,16 +173,16 @@ class UsersControllerTest < Test::Unit::TestCase
 
 		request = TestTools.request
 		TestTools.authenticate(request, me)
-		response = TestTools.get(request, "/users/?last_id=#{users[Constants::USERS_PER_PAGE - 1].id}")
+		response = TestTools.get(request, "/users/")
 		json = JSON.parse(response.body)
 		assert_equal(json["status"], 200, "status code doesn't match")
 
 		json = json["body"]
 		retrieved_users = json["users"]
-		assert_equal(retrieved_users.length, 7, "number of retrieved_users doesn't match")
+		assert_equal(retrieved_users.length, Constants::USERS_MAX, "number of retrieved_users doesn't match")
 
 		retrieved_users.each_with_index do |ru, i|
-			real_user = users[i + Constants::USERS_PER_PAGE]
+			real_user = users[i]
 			assert_equal(ru["id"], real_user.id, "id doesn't match")
 			assert_equal(ru["name"], real_user.name, "name doesn't match")
 			assert_equal(ru["image_url"], real_user.image_url, "image_url doesn't match")

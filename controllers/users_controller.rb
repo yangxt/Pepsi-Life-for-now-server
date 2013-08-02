@@ -42,22 +42,14 @@ post %r{^/users/?$} do
 end
 
 get %r{^/users/?$} do
-	last_id = params[:last_id].to_i if params[:last_id] 
-
 	users_query_parameters = {
-		:limit => Constants::USERS_PER_PAGE,
+		:limit => Constants::USERS_MAX,
        	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
        	:select => "application_users.id, application_users.name, application_users.description, application_users.image_url, coordinates.latitude, coordinates.longitude, coordinates.id as coordinates_id",
         :group => "application_users.id, coordinates.id",
         :order => "application_users.id DESC",
         :conditions => ["application_users.id != :user", {:user => @user.id}]
 	}
-
-	if last_id
-		conditions = users_query_parameters[:conditions]
-		conditions[0] << " and application_users.id < :last_id"
-		conditions[1][:last_id] = last_id
-	end
 
 	################################################
 	#Conditions to select users bounded to coordinate

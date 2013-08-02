@@ -82,7 +82,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 
 	def test_get_friends
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
-		friends = TestTools.create_x_users(11)
+		friends = TestTools.create_x_users(Constants::USERS_MAX + 3)
 		other_users = TestTools.create_x_users(5)
 
 		friends_objects = []
@@ -131,7 +131,7 @@ class FriendsControllerTest < Test::Unit::TestCase
 		json = json["body"]
 		retrieved_friends = json["friends"]
 
-		assert_equal(retrieved_friends.length, friends.length)
+		assert_equal(retrieved_friends.length, Constants::USERS_MAX, "number of friends doesn't match")
 
 		retrieved_friends.each do |rf|
 			assert(friends_objects.include?(rf), "#{rf} is not a friend")
