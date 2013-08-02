@@ -206,6 +206,7 @@ class UsersControllerTest < Test::Unit::TestCase
 	def test_get_user_posts
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		user = TestTools.create_user
+		TestTools.create_friendship(me, user)
 		posts = TestTools.create_x_posts_with_user(user, Constants::POSTS_PER_PAGE + 5)
 		liked = []
 		seen = []
@@ -254,6 +255,9 @@ class UsersControllerTest < Test::Unit::TestCase
 	  		assert_equal(retrieved_post["comments_count"], real_post.comments.count, "comments_count doesn't match")
 	  		assert_equal(retrieved_post["seen"], seen[i + Constants::POSTS_PER_PAGE], "seen doesn't match")
 	  		assert_equal(retrieved_post["liked"], liked[i + Constants::POSTS_PER_PAGE], "liked doesn't match")
+	  		assert_equal(retrieved_post["owner"]["name"], user.name, "liked doesn't match")
+	  		assert_equal(retrieved_post["owner"]["image_url"], user.image_url, "liked doesn't match")
+	  		assert_equal(retrieved_post["owner"]["friend"], true, "liked doesn't match")
 	  		
 	  		retrieved_tags = retrieved_post["tags"]
 	  		if retrieved_tags

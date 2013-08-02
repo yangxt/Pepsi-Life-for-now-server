@@ -251,6 +251,7 @@ get %r{^/users/(\d+)/posts/?$} do
 	################################################
 	#Build the response
 
+	friends = @user.friends
 	result = {:posts => [], :posts_count => user.posts.count, :likes_count => user.likes.count}
 
 	full_posts.each do |f|
@@ -265,7 +266,12 @@ get %r{^/users/(\d+)/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 			:comments_count => f[:comments_count].to_i,
 			:liked => f[:liked],
-			:seen => f[:seen]
+			:seen => f[:seen],
+			:owner => {
+				:name => user.name,
+				:image_url => user.image_url,
+				:friend => friends.include?(user)
+			},
 		}
 	end
 	jsonp({:status => 200, :body => result})
