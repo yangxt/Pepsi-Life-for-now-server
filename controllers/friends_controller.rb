@@ -25,10 +25,7 @@ post %r{^/me/friends/?$} do
 		haltJsonp 500, "Couldn't add the user as a friend" unless Friendship.create(:user1 => @user, :user2 => friend)
 	end
 
-	result = {
-		"friend_url" => "me/friends/" + friend_id.to_s + "/"
-	}
-	jsonp({:status => 200, :body => result})
+	jsonp({:status => 200, :body => {}})
 end
 
 get %r{^/me/friends/?$} do

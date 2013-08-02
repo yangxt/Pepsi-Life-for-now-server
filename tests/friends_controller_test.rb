@@ -30,7 +30,6 @@ class FriendsControllerTest < Test::Unit::TestCase
 		assert_equal(json["status"], 200, "status code doesn't match")
 
 		json = json["body"]
-		assert_equal(json["friend_url"], "me/friends/#{other_user.id}/")
 
 		friendships = Friendship.find(:all)
 		assert_equal(friendships.length, 1, "number of friendships doesn't match")
