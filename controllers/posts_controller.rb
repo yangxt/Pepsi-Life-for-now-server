@@ -40,7 +40,37 @@ post %r{^/posts/?$} do
 	rescue Exception => e
 		haltJsonp(500, "Couldn't create the post\n" + e.message)
 	end
-	jsonp({:status => 200, :body => {}})
+	jsonp({:status => 200, :body => {:id => post.id}})
+end
+
+get %r{^/posts/(\d+)/?$} do
+	post_id = params[:captures][0]
+	post = Post.where(:id => post_id).first
+	haltJsonp 404 unless post
+
+	tags = []
+	post.tags.each do |t|
+		tags << t.text
+	end
+
+	result = {
+		:id => post.id,
+		:text => post.text,
+		:image_url => post.image_url,
+		:tags => tags,
+		:creation_date => post.creation_date,
+		:likes_count => post.likes.count.to_i,
+		:seens_count => post.seens.count.to_i,
+		:comments_count => post.comments.count.to_i,
+		:owner => {
+			:name => post.application_user.name,
+			:image_url => post.application_user.image_url,
+			:friend => @user.friends.include?(post.application_user)
+		},
+		:seen => Seen.where(:application_user_id => @user.id, :post_id => post.id).count > 0,
+		:liked => Like.where(:application_user_id => @user.id, :post_id => post.id).count > 0
+	}
+	jsonp ({:status => 200, :body => result});
 end
 
 get %r{^/posts/?$} do

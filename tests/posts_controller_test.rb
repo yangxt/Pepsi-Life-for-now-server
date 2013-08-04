@@ -30,6 +30,7 @@ class PostsControllerTest < Test::Unit::TestCase
 		response = TestTools.post(request, '/posts/', body)
 		json = JSON.parse(response.body)
 		assert_equal(json["status"], 200, "status code doesn't match")
+		assert_equal(json["body"]["id"], Post.first.id, "post id doesn't match")
 
 		saved_posts = Post.all
 		assert_equal(saved_posts.length, 1, "number of posts added doesn't match")
@@ -44,6 +45,46 @@ class PostsControllerTest < Test::Unit::TestCase
 		tags.each_index do |i|
 			assert_equal(tags[i], saved_tags[i].text)
 			assert_equal(saved_tags[i].post, saved_post)
+		end
+	end
+
+	def test_get_one_post
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		user = TestTools.create_user
+		post = TestTools.create_post_with_user(user)
+		TestTools.create_x_tags_with_post(post, 3);
+		TestTools.create_friendship(me, user)
+		TestTools.create_seen_on_post_with_user(post, me)
+
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+		response = TestTools.get(request, "/posts/#{post.id}")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+		json = json["body"]
+
+		assert_equal(json["id"], post.id, "id doesn't match")
+		assert_equal(json["text"], post.text, "text doesn't match")
+		assert_equal(json["image_url"], post.image_url, "image_url doesn't match")
+		assert_equal(DateTime.parse(json["creation_date"].to_s), post.creation_date.to_s, "creation_date doesn't match")
+		assert_equal(json["likes_count"], post.likes.count, "likes_count doesn't match")
+		assert_equal(json["seens_count"], post.seens.count, "seens_count doesn't match")
+		assert_equal(json["comments_count"], post.comments.count, "comments_count doesn't match")
+		assert_equal(json["owner"]["name"], post.application_user.name, "post's owner's name doesn't match")
+		assert_equal(json["owner"]["image_url"], post.application_user.image_url, "post's owner's image_url doesn't match")
+		assert_equal(json["owner"]["friend"], true, "post's friend doesn't match")
+		assert_equal(json["liked"], false, "post's liked doesn't match")
+		assert_equal(json["seen"], true, "post's seens doesn't match")
+
+		retrieved_tags = json["tags"]
+		if retrieved_tags
+			real_tags = []
+			post.tags.each do |t|
+				real_tags << t.text
+			end
+			retrieved_tags.each do |t|
+				assert(real_tags.include?(t), "tags don't match")
+			end
 		end
 	end
 
