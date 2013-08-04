@@ -7,8 +7,7 @@ module Schemas
 	 	"required" => true,
 		"properties" => {
 			"text" => {
-				"type" => "string",
-				"required" => true
+				"type" => "string"
 			},
 			"image_url" => {
 				"type" => "string",
