@@ -275,7 +275,17 @@ post %r{^/posts/(\d+)/comments/?$} do
 	comment.post = post
 	comment.creation_date = DateTime.now
 	haltJsonp 500, "Couldn't create the comment" unless comment.save
-	jsonp({:status => 200, :body => {}})
+
+	result = {
+			:id => comment.id,
+			:text => comment.text,
+			:owner => {
+				:name => @user.name,
+				:image_url => @user.image_url,
+			},
+			:creation_date => comment.creation_date
+		}
+	jsonp({:status => 200, :body => result})
 end
 
 get %r{^/posts/(\d+)/comments/?$} do

@@ -339,6 +339,13 @@ class PostsControllerTest < Test::Unit::TestCase
 		comments = Comment.all
 		assert_equal(comments.length, 1, "number of comments doesn't match")
 		assert_equal(comments[0].text, body[:text], "text doesn't match")
+		comment = comments[0]
+		json = json["body"]
+		assert_equal(json["id"], comment.id, "comment id doesn't match")
+		assert_equal(json["text"], comment.text, "comment text doesn't match")
+		assert_equal(json["owner"]["name"], me.name, "comment owner name doesn't match")
+		assert_equal(json["owner"]["image_url"], me.image_url, "comment owner image url doesn't match")
+		assert_equal(DateTime.parse(json["creation_date"].to_s), comment.creation_date.to_s, "comment creation date doesn't match")
 	end
 
 	def test_post_comment_non_exising_post
