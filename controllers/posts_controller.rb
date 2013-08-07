@@ -63,6 +63,7 @@ get %r{^/posts/(\d+)/?$} do
 		:seens_count => post.seens.count.to_i,
 		:comments_count => post.comments.count.to_i,
 		:owner => {
+			:id => post.application_user.id,
 			:name => post.application_user.name,
 			:image_url => post.application_user.image_url,
 			:friend => @user.friends.include?(post.application_user)
@@ -79,7 +80,7 @@ get %r{^/posts/?$} do
 	posts_query_parameters = {
 		:limit => Constants::POSTS_PER_PAGE,
        	:joins => "LEFT JOIN application_users ON posts.application_user_id = application_users.id LEFT JOIN tags ON posts.id = tags.post_id",
-       	:select => "posts.*, application_users.name as user_name, application_users.image_url as user_image_url",
+       	:select => "posts.*, application_users.id as user_id, application_users.name as user_name, application_users.image_url as user_image_url",
         :group => "posts.id, application_users.id",
         :order => "posts.id DESC",
         :conditions => ["posts.application_user_id != :user", {:user => @user.id}]
@@ -216,6 +217,7 @@ get %r{^/posts/?$} do
 			:seens_count => f[:seens_count].to_i,
 			:comments_count => f[:comments_count].to_i,
 			:owner => {
+				:id => f[:post].user_id.to_i,
 				:name => f[:post].user_name,
 				:image_url => f[:post].user_image_url,
 				:friend => f[:friend]
