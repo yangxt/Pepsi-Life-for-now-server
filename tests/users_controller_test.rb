@@ -30,7 +30,7 @@ class UsersControllerTest < Test::Unit::TestCase
 		assert_equal(saved_user.username, json["username"], "username doesn't match")
 		assert_equal(saved_user.password, json["password"], "passwor doesn't match")
 		assert_nil(saved_user.image_url, "image_url not nil")
-		assert_nil(saved_user.name, "name not nil")
+		assert_equal(saved_user.name, "Unkown", "name not equal to unkown")
 		assert_nil(saved_user.description, "description not nil")
 	end
 

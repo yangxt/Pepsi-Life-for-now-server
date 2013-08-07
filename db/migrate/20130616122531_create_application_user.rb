@@ -3,7 +3,7 @@ class CreateApplicationUser < ActiveRecord::Migration
   	create_table :application_users do |t|
   		t.string :username
   		t.string :password
-  		t.string :name
+  		t.string :name, :default => "Unkown"
   		t.text :image_url
       t.text :description
   	end
