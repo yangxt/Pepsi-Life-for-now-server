@@ -16,6 +16,7 @@ require './controllers/users_controller'
 require './controllers/posts_controller'
 require './controllers/friends_controller'
 require './controllers/images_controller'
+require './controllers/ad_controller'
 
 set :protection, :except => [:http_origin]
 
@@ -61,16 +62,4 @@ end
 
 not_found do
 	jsonp({:status => 404, :message => "Non-existing resource"})
-end
-
-get %r{^/admin/?} do
-	protected!
-	content_type :html
-	file = File.new("admin.html", "r")
-	data = ""
-	while (line = file.gets)
-    	data += line
-	end
-	file.close
-	data
 end

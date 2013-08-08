@@ -5,11 +5,39 @@
 </head>
 <body>
     <script>
+    var API_KEY = "nd6YyykHsCygZZi64F"
+    var SERVER_URL = "http://localhost:4567/";
+    var USERNAME = "admin"
+    var PASSWORD = "admin"
     function onSubmit() {
         var form = document.getElementsByTagName("form")[0];
         var fileInput = form[0];
         var durationInput = form[1];
         var reader = new FileReader();
+
+        var file = fileInput.files[0];
+        var duration = parseFloat(durationInput.value)
+
+        var sendJSON = function(imageURL) {
+            var json = JSON.stringify({
+                image_url: imageURL,
+                duration: duration
+            });
+
+            var request = new XMLHttpRequest();
+            request.onload = function() {
+                var response = JSON.parse(request.responseText);
+                if (response.status == 200) {
+                    alert("The ad was saved");
+                }
+                else {
+                    alert("An error occured. Please try again");
+                }
+            };
+            request.open("PUT", SERVER_URL + "ad/", true, USERNAME, PASSWORD);
+            request.setRequestHeader("Content-Type", "application/json")
+            request.send(json);
+        };
 
         reader.onload = function(readerEvt) {
             var binaryString = readerEvt.target.result;
@@ -17,17 +45,17 @@
             request.onload = function() {
                 var response = JSON.parse(request.responseText);
                 if (response.status == 200) {
-                    alert(response.body.image_url);
+                    sendJSON(response.body.image_url);
                 }
                 else {
-                   alert(response.status);
+                    alert("An error occured. Please try again");
                 }
             };
-            request.open("POST", "http://localhost:4567/images/?api_key=nd6YyykHsCygZZi64F", true);
+            request.open("POST", SERVER_URL +"images/?api_key=" + API_KEY, true);
             request.send("data:image/png;base64," + btoa(binaryString));
         };
 
-        reader.readAsBinaryString(fileInput.files[0]);
+        reader.readAsBinaryString(file);
     }
     </script>
     <form onsubmit="onSubmit(); return false;">
