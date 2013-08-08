@@ -6,7 +6,7 @@
 <body>
     <script>
     var API_KEY = "nd6YyykHsCygZZi64F"
-    var SERVER_URL = "http://localhost:4567/";
+    var SERVER_URL = window.location.origin;
     var USERNAME = "admin"
     var PASSWORD = "admin"
     function onSubmit() {
@@ -34,7 +34,7 @@
                     alert("An error occured. Please try again");
                 }
             };
-            request.open("PUT", SERVER_URL + "ad/", true, USERNAME, PASSWORD);
+            request.open("PUT", SERVER_URL + "/ad/", true, USERNAME, PASSWORD);
             request.setRequestHeader("Content-Type", "application/json")
             request.send(json);
         };
@@ -51,7 +51,7 @@
                     alert("An error occured. Please try again");
                 }
             };
-            request.open("POST", SERVER_URL +"images/?api_key=" + API_KEY, true);
+            request.open("POST", SERVER_URL +"/images/?api_key=" + API_KEY, true);
             request.send("data:image/png;base64," + btoa(binaryString));
         };
 
