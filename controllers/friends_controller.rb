@@ -7,6 +7,9 @@ require './models/friendship'
 require './schemas/friends_POST'
 
 post %r{^/me/friends/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	schema = Schemas.schemas[:friends_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
 	haltJsonp 400, is_valid[1] unless is_valid[0]
@@ -29,6 +32,9 @@ post %r{^/me/friends/?$} do
 end
 
 delete %r{^/me/friends/(\d+)?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	friend_id = params[:captures][0]
 
 	friendship = Friendship.where(["(user1_id = :user and user2_id = :friend) or (user1_id = :friend and user2_id = :user)", {:user => @user.id, :friend => friend_id}]).first
@@ -42,6 +48,9 @@ delete %r{^/me/friends/(\d+)?$} do
 end
 
 get %r{^/me/friends/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	bounds = {
 		:from_lat => params[:from_lat],
 		:to_lat => params[:to_lat],

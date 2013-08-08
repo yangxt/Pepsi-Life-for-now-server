@@ -6,6 +6,9 @@ require './helpers/s3'
 require "base64"
 
 post %r{^/images/?$} do
+	keyProtected!
+	content_type :json
+	
 	base64 = request.body.read
 	haltJsonp 400, "No content provided" unless base64
 

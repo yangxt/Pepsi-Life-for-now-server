@@ -20,7 +20,7 @@ module Sinatra
         user
     end
 
-    def authenticate
+    def authenticate!
         unauthorized! unless auth.provided?
         bad_request! unless auth.basic?
         unauthorized! unless user = authorize(*auth.credentials)

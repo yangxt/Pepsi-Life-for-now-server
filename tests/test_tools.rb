@@ -32,7 +32,7 @@ module TestTools
 	def self.send_request(request, method, path, body)
 		json = ""
 		json = body.to_json if body
-		request.header("Content-Type", "application/json")
+		request.header("content_type", "application/json")
 		api_key = "nd6YyykHsCygZZi64F"
 		if path.include?("?")
 			path << "&api_key=" + api_key

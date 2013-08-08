@@ -22,6 +22,8 @@ def generate_password
 end
 
 post %r{^/users/?$} do
+	keyProtected!
+	content_type :json
 	begin
 		ApplicationUser.transaction do
 			user = ApplicationUser.create!
@@ -42,6 +44,9 @@ post %r{^/users/?$} do
 end
 
 get %r{^/users/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	users_query_parameters = {
 		:limit => Constants::USERS_MAX,
        	:joins => "LEFT JOIN coordinates ON application_users.id = coordinates.application_user_id",
@@ -150,6 +155,9 @@ get %r{^/users/?$} do
 end
 
 get %r{^/users/(\d+)/posts/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	user_id = params[:captures][0]
 	user = ApplicationUser.where(:id => user_id).first
 	haltJsonp 404 unless user
@@ -270,6 +278,9 @@ get %r{^/users/(\d+)/posts/?$} do
 end
 
 get %r{^/me/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	result =  {
 		"id" => @user.id,
 		"username" => @user.username,
@@ -284,6 +295,9 @@ get %r{^/me/?$} do
 end
 
 put %r{^/me/geolocation/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	schema = Schemas.schemas[:users_geolocation_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
 	haltJsonp 400, is_valid[1] unless is_valid[0]
@@ -297,6 +311,9 @@ put %r{^/me/geolocation/?$} do
 end
 
 patch %r{^/me/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	schema = Schemas.schemas[:users_PATCH]
 	is_valid = Tools.validate_against_schema(schema, @json)
 	haltJsonp 400, is_valid[1] unless is_valid[0]

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pepsi Admin</title>
+</head>
+<body>
+    <script>
+    function onSubmit() {
+        var form = document.getElementsByTagName("form")[0];
+        var fileInput = form[0];
+        var durationInput = form[1];
+        var reader = new FileReader();
+
+        reader.onload = function(readerEvt) {
+            var binaryString = readerEvt.target.result;
+            var request = new XMLHttpRequest();
+            request.onload = function() {
+                var response = JSON.parse(request.responseText);
+                if (response.status == 200) {
+                    alert(response.body.image_url);
+                }
+                else {
+                   alert(response.status);
+                }
+            };
+            request.open("POST", "http://localhost:4567/images/?api_key=nd6YyykHsCygZZi64F", true);
+            request.send("data:image/png;base64," + btoa(binaryString));
+        };
+
+        reader.readAsBinaryString(fileInput.files[0]);
+    }
+    </script>
+    <form onsubmit="onSubmit(); return false;">
+        <input type="file"></input>
+        <input type="text" placeholder="Duration in seconds" style="display:block; margin-top: 10px"></input>
+        <input type="submit" style="margin-top: 10px" value="Send"></input>
+    </form>
+</body>
+</html>

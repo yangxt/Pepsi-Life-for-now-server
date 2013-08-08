@@ -14,6 +14,9 @@ require './schemas/posts_POST'
 require './schemas/comments_POST'
 
 post %r{^/posts/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	schema = Schemas.schemas[:posts_POST]
 	is_valid = Tools.validate_against_schema(schema, @json)
  	haltJsonp(400, is_valid[1]) unless is_valid[0]
@@ -44,6 +47,9 @@ post %r{^/posts/?$} do
 end
 
 get %r{^/posts/(\d+)/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	post_id = params[:captures][0]
 	post = Post.where(:id => post_id).first
 	haltJsonp 404 unless post
@@ -75,6 +81,9 @@ get %r{^/posts/(\d+)/?$} do
 end
 
 get %r{^/posts/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	last_id = params[:last_id].to_i if params[:last_id] 
 
 	posts_query_parameters = {
@@ -231,6 +240,9 @@ get %r{^/posts/?$} do
 end
 
 post %r{^/posts/(\d+)/likes/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	id = params[:captures][0]
 	begin
 		post = Post.find(id)
@@ -246,6 +258,9 @@ post %r{^/posts/(\d+)/likes/?$} do
 end
 
 post %r{^/posts/(\d+)/seens/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	id = params[:captures][0]
 	begin
 		post = Post.find(id)
@@ -261,6 +276,9 @@ post %r{^/posts/(\d+)/seens/?$} do
 end
 
 post %r{^/posts/(\d+)/comments/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	post_id = params[:captures][0]
 	begin
 		post = Post.find(post_id)
@@ -291,6 +309,9 @@ post %r{^/posts/(\d+)/comments/?$} do
 end
 
 get %r{^/posts/(\d+)/comments/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	post_id = params[:captures][0]
 	last_id = params[:last_id].to_i if params[:last_id] 
 
@@ -345,6 +366,9 @@ get %r{^/posts/(\d+)/comments/?$} do
 end
 
 get %r{^/me/posts/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
 	last_id = params[:last_id].to_i if params[:last_id] 
 
 	################################################
