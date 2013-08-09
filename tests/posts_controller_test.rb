@@ -347,6 +347,7 @@ class PostsControllerTest < Test::Unit::TestCase
 		assert_equal(json["text"], comment.text, "comment text doesn't match")
 		assert_equal(json["owner"]["name"], me.name, "comment owner name doesn't match")
 		assert_equal(json["owner"]["image_url"], me.image_url, "comment owner image url doesn't match")
+		assert_nil(json["owner"]["friend"], "owner friend not nil")
 		assert_equal(DateTime.parse(json["creation_date"].to_s), comment.creation_date.to_s, "comment creation date doesn't match")
 	end
 
@@ -370,14 +371,20 @@ class PostsControllerTest < Test::Unit::TestCase
 		TestTools.create_x_comments_with_post_and_user(fake_post, me, 3)
 		comments = []
 		users.each_index do |i|
-			comments << (TestTools.create_comment_with(post, users[i], "text#{i}", DateTime.now + i.days))
-			if i > Constants::COMMENTS_PER_PAGE + 1
+			user = users[i]
+			if i > 3
 				TestTools.create_friendship(me, users[i])
 				friend << true
+			elsif i > 1
+				user = me
+				friend << nil
 			else
 				friend << false
 			end
+			comments << (TestTools.create_comment_with(post, user, "text#{i}", DateTime.now + i.days))
+			
 		end
+
 		comments.reverse!
 		friend.reverse!
 
@@ -400,7 +407,6 @@ class PostsControllerTest < Test::Unit::TestCase
 			assert_equal(retrieved_comment["owner"]["name"], real_comment.application_user.name, "owner's name doesn't match")
 			assert_equal(retrieved_comment["owner"]["image_url"], real_comment.application_user.image_url, "owner's image_url doesn't match")
 			assert_equal(retrieved_comment["owner"]["friend"], friend[i + Constants::COMMENTS_PER_PAGE], "comment's friend doesn't match")
-
 		end
 	end
 

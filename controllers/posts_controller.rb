@@ -331,7 +331,8 @@ get %r{^/posts/(\d+)/comments/?$} do
 	comments_ids = []
 	comments.each do |c|
 		full_comments << {
-			:comment => c
+			:comment => c,
+			:friend => false
 		}
 		comments_ids << c.id
 	end
@@ -344,22 +345,29 @@ get %r{^/posts/(\d+)/comments/?$} do
 	users = Comment.users_for_comments(comments)
 	users.each do |u|
 		full_comment = full_comments[comments_ids.index(u.comment_id.to_i)]
-		full_comment[:friend] = friends.include?(u)
+		if u.id == @user.id
+			full_comment[:friend] = nil
+		else
+			full_comment[:friend] = friends.include?(u)
+		end
 	end
 
 
 	full_comments.each do |f|
 		array = result[:comments]
-		array << {
+		comment = {
 			:id => f[:comment].id,
 			:text => f[:comment].text,
 			:owner => {
 				:name => f[:comment].application_user.name,
 				:image_url => f[:comment].application_user.image_url,
-				:friend => f[:friend]
 			},
 			:creation_date => f[:comment].creation_date
 		}
+		if f[:friend] != nil
+			comment[:owner][:friend] = f[:friend]
+		end
+		array << comment
 	end
 	jsonp({:status => 200, :body => result})
 end
