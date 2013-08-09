@@ -41,7 +41,6 @@ end
 
 before do
 	if ENV['RACK_ENV'] != 'test'
-		puts "JSONP before check query string"
 		query_string = env["QUERY_STRING"]
 		method = query_string.scan(/&?method=(\w+)&?/).flatten
 		if method.length != 0
@@ -49,8 +48,6 @@ before do
 			env["QUERY_STRING"] = query_string
 			env["REQUEST_METHOD"] = method[0]
 		end
-
-		puts "JSONp after check query_string"
   	end
 
   	if (request.content_type == "application/json" &&
