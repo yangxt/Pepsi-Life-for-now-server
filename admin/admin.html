@@ -17,11 +17,11 @@
             margin-top: -250px;
         }
 
-        body > div > div {
+        body > div > div#logo {
             width: 271px;
             height: 271px;
             margin: auto;
-            margin-top: 50px;
+            margin-top: 20px;
             background-image: url("/img/pepsi-logo.png");
             background-position: center;
             background-repeat: no-repeat;
@@ -65,6 +65,17 @@
             cursor: pointer;
         }
 
+        body > div > div#uploading {
+            color: white;
+            visibility: hidden;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        body > div > #uploading.visible {
+            visibility: visible;
+        }
+
     </style>
 </head>
 <body>
@@ -75,6 +86,8 @@
     var PASSWORD = "admin"
     function onSubmit() {
         var form = document.getElementsByTagName("form")[0];
+        var button = form[2];
+
         var fileInput = form[0];
         var durationInput = form[1];
         var reader = new FileReader();
@@ -97,6 +110,10 @@
             return;
         }
 
+        var uploading = document.getElementById("uploading");
+        uploading.className = "visible";
+        button.disabled = true;
+
         var sendJSON = function(imageURL) {
             var json = JSON.stringify({
                 image_url: imageURL,
@@ -108,9 +125,13 @@
                 var response = JSON.parse(request.responseText);
                 if (response.status == 200) {
                     alert("The ad was saved");
+                    button.disabled = false;
+                    uploading.className = "";
                 }
                 else {
                     alert("An error occured. Please try again");
+                    button.disabled = false;
+                    uploading.className = "";
                 }
             };
             request.open("PUT", SERVER_URL + "/ad/", true, USERNAME, PASSWORD);
@@ -128,6 +149,8 @@
                 }
                 else {
                     alert("An error occured. Please try again");
+                    button.disabled = false;
+                    uploading.className = "";
                 }
             };
             request.open("POST", SERVER_URL +"/images/?api_key=" + API_KEY, true);
@@ -142,7 +165,8 @@
     };
     </script>
     <div>
-        <div></div>
+        <div id="uploading">Uploading...</div>
+        <div id="logo"></div>
         <form onsubmit="onSubmit(); return false;">
             <input type="file" id="file"></input>
             <input type="text" id="duration" placeholder="Duration in seconds"></input>
