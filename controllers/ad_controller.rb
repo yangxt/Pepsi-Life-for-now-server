@@ -4,19 +4,7 @@ require './schemas/ad_PUT'
 require './helpers/haltJsonp'
 require './models/ad'
 
-get %r{^/admin/?} do
-	protected!
-	content_type :html
-	file = File.new("admin.html", "r")
-	data = ""
-	while (line = file.gets)
-    	data += line
-	end
-	file.close
-	data
-end
-
-put %r{^/ad/?} do
+put %r{^/ad/?$} do
 	protected!
 	content_type :json
 	schema = Schemas.schemas[:ad_PUT]
@@ -31,7 +19,7 @@ put %r{^/ad/?} do
  	jsonp({:status => 200, :body => {}})
 end
 
-get %r{^/ad/?} do
+get %r{^/ad/?$} do
 	keyProtected!
 	content_type :json
 	ad = Ad.first

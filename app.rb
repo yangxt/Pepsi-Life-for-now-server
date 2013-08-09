@@ -17,8 +17,10 @@ require './controllers/posts_controller'
 require './controllers/friends_controller'
 require './controllers/images_controller'
 require './controllers/ad_controller'
+require './controllers/admin_controller'
 
 set :protection, :except => [:http_origin]
+set :public_folder, File.dirname(__FILE__) + '/static'
 
 if Rack::Utils.respond_to?("key_space_limit=")
   	Rack::Utils.key_space_limit = 400000 

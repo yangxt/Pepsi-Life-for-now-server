@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pepsi Admin</title>
+    <style type="text/css">
+        body {
+            background-color: #171717;
+        }
+
+        body > div {
+            width: 300px;
+            height: 500px;
+            position: absolute;
+            left: 50%;
+            margin-left: -150px;
+            top: 50%;
+            margin-top: -250px;
+        }
+
+        body > div > div {
+            width: 271px;
+            height: 271px;
+            margin: auto;
+            margin-top: 50px;
+            background-image: url("/img/pepsi-logo.png");
+            background-position: center;
+            background-repeat: no-repeat;
+        }
+
+        body > div > form {
+            background-color: white;
+            width: 200px;
+            margin: auto;
+            margin-top: 20px;
+            padding: 10px 0 10px 0;
+        }
+
+        body > div> form > input {
+            display: block;
+            margin: auto;
+            margin-bottom: 10px;
+        }
+
+        body > div > form > input#file {
+            width: 175px;
+        }
+
+        body > div > form > input#duration {
+            width: 169px;
+        }
+
+        body > div > form > input#submit {
+            width: 100px;
+            margin-bottom: 0;
+        }
+
+        body > div > a {
+            display: block;
+            position: relative;
+            color: #d32333;
+            font-size: 12px;
+            left: 50%;
+            margin-top: 5px;
+            margin-left: -100px;
+            cursor: pointer;
+        }
+
+    </style>
+</head>
+<body>
+    <script>
+    var API_KEY = "nd6YyykHsCygZZi64F"
+    var SERVER_URL = window.location.origin;
+    var USERNAME = "admin"
+    var PASSWORD = "admin"
+    function onSubmit() {
+        var form = document.getElementsByTagName("form")[0];
+        var fileInput = form[0];
+        var durationInput = form[1];
+        var reader = new FileReader();
+
+        var file = fileInput.files[0];
+        var duration = parseFloat(durationInput.value)
+
+        if (file == undefined) {
+            alert("Please choose a image");
+            return;
+        }
+
+        if (file.type != "image/png" && file.type != "image/jpeg") {
+            alert("Please only send png or jpg images");
+            return;
+        }
+
+        if (duration == "" || isNaN(duration)) {
+            alert("Please insert a valid duration");
+            return;
+        }
+
+        var sendJSON = function(imageURL) {
+            var json = JSON.stringify({
+                image_url: imageURL,
+                duration: duration
+            });
+
+            var request = new XMLHttpRequest();
+            request.onload = function() {
+                var response = JSON.parse(request.responseText);
+                if (response.status == 200) {
+                    alert("The ad was saved");
+                }
+                else {
+                    alert("An error occured. Please try again");
+                }
+            };
+            request.open("PUT", SERVER_URL + "/ad/", true, USERNAME, PASSWORD);
+            request.setRequestHeader("Content-Type", "application/json")
+            request.send(json);
+        };
+
+        reader.onload = function(readerEvt) {
+            var binaryString = readerEvt.target.result;
+            var request = new XMLHttpRequest();
+            request.onload = function() {
+                var response = JSON.parse(request.responseText);
+                if (response.status == 200) {
+                    sendJSON(response.body.image_url);
+                }
+                else {
+                    alert("An error occured. Please try again");
+                }
+            };
+            request.open("POST", SERVER_URL +"/images/?api_key=" + API_KEY, true);
+            request.send(btoa(binaryString));
+        };
+
+        reader.readAsBinaryString(file);
+    }
+
+    function onInfoClick() {
+        alert("Only png/jpg images.\nTry to upload images wide enough for most devices (min 800px x 1000px).\nTry to keep the image weight as low as possible or the user will have to wait for 10 seconds to receive the ad (max 1Mo).");
+    };
+    </script>
+    <div>
+        <div></div>
+        <form onsubmit="onSubmit(); return false;">
+            <input type="file" id="file"></input>
+            <input type="text" id="duration" placeholder="Duration in seconds"></input>
+            <input type="submit" id="submit" value="Send"></input>
+        </form>
+        <a onclick="onInfoClick()">Info</a>
+    </div>
+</body>
+</html>
