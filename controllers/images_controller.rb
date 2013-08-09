@@ -12,7 +12,8 @@ post %r{^/images/?$} do
 	base64 = request.body.read
 	haltJsonp 400, "No content provided" unless base64
 
-	data = Base64.decode64(base64['data:image/png;base64,'.length .. -1])
+	base64.sub!(/data:image\/(png|jpeg);base64,/, "")
+	data = Base64.decode64(base64)
 
 	s3 = S3.instance
 	bucket = s3.bucket("pepsi-app")
