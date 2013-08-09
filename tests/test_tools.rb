@@ -17,6 +17,7 @@ module TestTools
 		Seen.delete_all
 		Friendship.delete_all
 		Coordinate.delete_all
+		Ad.delete_all
 	end
 
 	#Request
