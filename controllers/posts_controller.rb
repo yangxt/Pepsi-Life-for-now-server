@@ -47,11 +47,8 @@ post %r{^/posts/?$} do
 end
 
 get %r{^/posts/(\d+)/?$} do
-	puts "Posts before key protected"
 	keyProtected!
-	puts "Posts before authenticate"
 	@user = authenticate!
-	puts "Posts after authenticate"
 	content_type :json
 	post_id = params[:captures][0]
 	post = Post.where(:id => post_id).first
@@ -80,13 +77,15 @@ get %r{^/posts/(\d+)/?$} do
 		:seen => Seen.where(:application_user_id => @user.id, :post_id => post.id).count > 0,
 		:liked => Like.where(:application_user_id => @user.id, :post_id => post.id).count > 0
 	}
-	puts "Posts before json send"
 	jsonp ({:status => 200, :body => result});
 end
 
 get %r{^/posts/?$} do
+	puts "Posts before key protected"
 	keyProtected!
+	puts "Posts before authenticate"
 	@user = authenticate!
+	puts "Posts after authenticate"
 	content_type :json
 	last_id = params[:last_id].to_i if params[:last_id] 
 
@@ -239,7 +238,7 @@ get %r{^/posts/?$} do
 			:liked => f[:liked]
 		}
 	end
-
+	puts "Posts before json send"
 	jsonp ({:status => 200, :body => result});
 end
 
