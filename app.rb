@@ -63,10 +63,6 @@ before do
 	end
 end
 
-after do
-  ActiveRecord::Base.connection.close
-end
-
 not_found do
 	jsonp({:status => 404, :message => "Non-existing resource"})
 end
