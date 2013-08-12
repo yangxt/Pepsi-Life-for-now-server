@@ -71,12 +71,14 @@ get %r{^/posts/(\d+)/?$} do
 		:owner => {
 			:id => post.application_user.id,
 			:name => post.application_user.name,
-			:image_url => post.application_user.image_url,
-			:friend => @user.friends.include?(post.application_user)
+			:image_url => post.application_user.image_url
 		},
 		:seen => Seen.where(:application_user_id => @user.id, :post_id => post.id).count > 0,
 		:liked => Like.where(:application_user_id => @user.id, :post_id => post.id).count > 0
 	}
+	if @user != post.application_user
+		result[:owner][:friend] = @user.friends.include?(post.application_user)
+	end
 	jsonp ({:status => 200, :body => result});
 end
 
@@ -133,7 +135,8 @@ get %r{^/posts/?$} do
 			:post => p,
 			:likes_count => 0,
 			:seens_count => 0,
-			:comments_count => 0
+			:comments_count => 0,
+			:friend => false
 		}
 		posts_ids << p.id
 	end
@@ -183,7 +186,11 @@ get %r{^/posts/?$} do
 	users = Post.users_for_posts(posts)
 	users.each do |u|
 		full_post = full_posts[posts_ids.index(u.post_id.to_i)]
-		full_post[:friend] = friends.include?(u)
+		if u.id == @user.id
+			full_post[:friend] = nil
+		else
+			full_post[:friend] = friends.include?(u)
+		end
 	end
 
 	################################################
@@ -216,7 +223,7 @@ get %r{^/posts/?$} do
 	result = {:posts => []}
 	full_posts.each_with_index do |f, index|
 		array = result[:posts]
-		array << {
+		post = {
 			:id => f[:post].id,
 			:text => f[:post].text,
 			:image_url => f[:post].image_url,
@@ -228,12 +235,16 @@ get %r{^/posts/?$} do
 			:owner => {
 				:id => f[:post].user_id.to_i,
 				:name => f[:post].user_name,
-				:image_url => f[:post].user_image_url,
-				:friend => f[:friend]
+				:image_url => f[:post].user_image_url
 			},
 			:seen => f[:seen],
 			:liked => f[:liked]
 		}
+
+		if f[:friend] != nil
+			post[:owner][:friend] = f[:friend]
+		end
+		array << post
 	end
 	jsonp ({:status => 200, :body => result});
 end
