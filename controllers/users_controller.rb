@@ -43,6 +43,40 @@ post %r{^/users/?$} do
 	end
 end
 
+get %r{^/users/(\d+)/?$} do
+	keyProtected!
+	@user = authenticate!
+	content_type :json
+	user_id = params[:captures][0]
+
+	begin
+		user = ApplicationUser.find(user_id)
+	rescue ActiveRecord::RecordNotFound
+		haltJsonp 404
+	end
+
+	friends = @user.friends
+	result = {
+		:id => user.id,
+		:name => user.name,
+		:image_url => user.image_url,
+		:friend => friends.include?(user),
+		:seens_count => user.seens.count,
+		:likes_count => user.likes.count,
+		:posts_count => user.posts.count,
+		:description => user.description
+	}
+	if user.coordinate
+		result[:coordinate] = {
+			:latitude => user.coordinate.latitude.to_f,
+			:longitude => user.coordinate.longitude.to_f
+		}
+	else
+		result[:coordinate] = "null"
+	end
+	jsonp({:status => 200, :body => result})
+end
+
 get %r{^/users/?$} do
 	keyProtected!
 	@user = authenticate!

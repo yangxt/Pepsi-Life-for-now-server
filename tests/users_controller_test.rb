@@ -203,6 +203,36 @@ class UsersControllerTest < Test::Unit::TestCase
 		end
 	end
 
+	def test_get_user
+		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
+		user = TestTools.create_user
+		TestTools.create_friendship(me, user)
+		post1 = TestTools.create_post_with_user(user)
+		post2 = TestTools.create_post_with_user(user)
+		TestTools.create_like_on_post_with_user(post1, user)
+		TestTools.create_seen_on_post_with_user(post2, user)
+		TestTools.create_coordinate_with_user(user, 34, 23)
+
+		request = TestTools.request
+		TestTools.authenticate(request, me)
+		response = TestTools.get(request, "/users/#{user.id}")
+		json = JSON.parse(response.body)
+		assert_equal(json["status"], 200, "status code doesn't match")
+
+		json = json["body"]
+
+		assert_equal(json["id"], user.id, "id doesn't match")
+		assert_equal(json["name"], user.name, "name doesn't match")
+		assert_equal(json["image_url"], user.image_url, "image_url doesn't match")
+		assert_equal(json["description"], user.description, "description doesn't match")
+		assert_equal(json["coordinate"]["latitude"], user.coordinate.latitude, "latitude doesn't match")
+		assert_equal(json["coordinate"]["longitude"], user.coordinate.longitude, "longitude doesn't match")
+		assert_equal(json["friend"], true, "friend doesn't match")
+		assert_equal(json["seens_count"], user.seens.count, "seens_count doesn't match")
+		assert_equal(json["likes_count"], user.likes.count, "likes_count doesn't match")
+		assert_equal(json["posts_count"], user.posts.count, "posts_count doesn't match")
+	end
+
 	def test_get_user_posts
 		me = TestTools.create_user_with("my_username", "my_password", "my_name", "my_image_url", "my_description")
 		user = TestTools.create_user
