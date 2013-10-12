@@ -4,8 +4,8 @@ class S3
 
 	def initialize
 		@s3 = AWS::S3.new(
- 			:access_key_id => 'AKIAIUZBWCAVDL22JHPQ',
-  			:secret_access_key => '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')
+ 			:access_key_id => 'AKIAIHTVW7A7X4FBDBDA',
+  			:secret_access_key => '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')
 		@buckets = {} 
 	end
 	
