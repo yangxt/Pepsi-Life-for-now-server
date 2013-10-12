@@ -16,10 +16,10 @@ post %r{^/images/?$} do
 	data = Base64.decode64(base64)
 
 	s3 = S3.instance
-	bucket = s3.bucket("pepsi-app")
+	bucket = s3.bucket("pepsiapp")
 	timestamp = Time.now.to_f.to_s
 	object = bucket.objects[timestamp]
 	object.write(data, {:acl => :public_read, :cache_control => "public"})
-	url = s3.url("pepsi-app") + timestamp
+	url = s3.url("pepsiapp") + timestamp
 	jsonp({:status => 200, :body => {:image_url => url}})
 end
